@@ -1,0 +1,11 @@
+.cache/
+.config/
+.ssh/
+.bash_history
+*.deb
+Downloads/
+Music/
+Pictures/
+snap/
+target/
+*.class
