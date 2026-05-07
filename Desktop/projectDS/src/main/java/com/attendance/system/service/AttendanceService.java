@@ -69,13 +69,14 @@ public interface AttendanceService extends Remote {
      * @param lastName the last name
      * @param password the password
      * @param role the user role (STUDENT or TEACHER)
+     * @param classSection the class section (for students only, e.g., "A", "B", "C", "D")
      * @return true if registration was successful
      * @throws RemoteException if RMI communication fails
      * @throws ValidationException if user data is invalid or username/email already exists
      * @throws DatabaseException if database operation fails
      */
     boolean registerUser(String username, String email, String firstName, String lastName, 
-                        String password, UserRole role) 
+                        String password, UserRole role, String classSection) 
             throws RemoteException, ValidationException, DatabaseException;
     
     // User management methods (Admin only)
@@ -227,6 +228,78 @@ public interface AttendanceService extends Remote {
      * @throws DatabaseException if database operation fails
      */
     List<Student> getEnrolledStudents(String sessionToken, int courseId) 
+            throws RemoteException, AuthenticationException, DatabaseException;
+    
+    /**
+     * Gets a user by ID.
+     * @param sessionToken the session token
+     * @param userId the user ID
+     * @return user or null if not found
+     * @throws RemoteException if RMI communication fails
+     * @throws AuthenticationException if session is invalid
+     * @throws DatabaseException if database operation fails
+     */
+    User getUserById(String sessionToken, int userId) 
+            throws RemoteException, AuthenticationException, DatabaseException;
+    
+    /**
+     * Gets a course by ID.
+     * @param sessionToken the session token
+     * @param courseId the course ID
+     * @return course or null if not found
+     * @throws RemoteException if RMI communication fails
+     * @throws AuthenticationException if session is invalid
+     * @throws DatabaseException if database operation fails
+     */
+    Course getCourseById(String sessionToken, int courseId) 
+            throws RemoteException, AuthenticationException, DatabaseException;
+    
+    /**
+     * Deletes a course.
+     * @param sessionToken the session token (admin required)
+     * @param courseId the course ID
+     * @return true if course was deleted successfully
+     * @throws RemoteException if RMI communication fails
+     * @throws AuthenticationException if session is invalid or insufficient permissions
+     * @throws DatabaseException if database operation fails
+     */
+    boolean deleteCourse(String sessionToken, int courseId) 
+            throws RemoteException, AuthenticationException, DatabaseException;
+    
+    /**
+     * Assigns a teacher to a course.
+     * @param sessionToken the session token (admin required)
+     * @param courseId the course ID
+     * @param teacherId the teacher ID
+     * @return true if assignment was successful
+     * @throws RemoteException if RMI communication fails
+     * @throws AuthenticationException if session is invalid or insufficient permissions
+     * @throws DatabaseException if database operation fails
+     */
+    boolean assignTeacherToCourse(String sessionToken, int courseId, int teacherId) 
+            throws RemoteException, AuthenticationException, DatabaseException;
+    
+    /**
+     * Gets all enrollments.
+     * @param sessionToken the session token (admin required)
+     * @return list of all enrollments
+     * @throws RemoteException if RMI communication fails
+     * @throws AuthenticationException if session is invalid or insufficient permissions
+     * @throws DatabaseException if database operation fails
+     */
+    List<Enrollment> getAllEnrollments(String sessionToken) 
+            throws RemoteException, AuthenticationException, DatabaseException;
+    
+    /**
+     * Drops a student from a course.
+     * @param sessionToken the session token (admin required)
+     * @param enrollmentId the enrollment ID
+     * @return true if student was dropped successfully
+     * @throws RemoteException if RMI communication fails
+     * @throws AuthenticationException if session is invalid or insufficient permissions
+     * @throws DatabaseException if database operation fails
+     */
+    boolean dropStudentFromCourse(String sessionToken, int enrollmentId) 
             throws RemoteException, AuthenticationException, DatabaseException;
     
     // Attendance management methods

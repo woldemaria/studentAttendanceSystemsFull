@@ -98,6 +98,9 @@ public class OverloadHandler {
             
             try {
                 request.execute();
+            } catch (Exception e) {
+                logger.error("Error executing request: {}", request.getOperationName(), e);
+                // Exception is caught and logged, no need to rethrow
             } finally {
                 activeRequests.decrementAndGet();
                 checkRecovery();
@@ -306,6 +309,14 @@ public class OverloadHandler {
     private static class AtomicInteger {
         private int value = 0;
         
+        public AtomicInteger() {
+            this.value = 0;
+        }
+        
+        public AtomicInteger(int initialValue) {
+            this.value = initialValue;
+        }
+        
         public synchronized void incrementAndGet() {
             value++;
         }
@@ -328,6 +339,14 @@ public class OverloadHandler {
      */
     private static class AtomicLong {
         private long value = 0;
+        
+        public AtomicLong() {
+            this.value = 0;
+        }
+        
+        public AtomicLong(int initialValue) {
+            this.value = initialValue;
+        }
         
         public synchronized void incrementAndGet() {
             value++;

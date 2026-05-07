@@ -1,5 +1,6 @@
 package com.attendance.system.client;
 
+import com.attendance.system.exception.AuthenticationException;
 import com.attendance.system.service.AttendanceService;
 import com.attendance.system.util.ConfigManager;
 import org.slf4j.Logger;
@@ -907,7 +908,7 @@ public class SystemConfigurationPanel extends JPanel {
         CompletableFuture.supplyAsync(() -> {
             try {
                 return remoteService.getMaintenanceModeInfo(sessionToken);
-            } catch (RemoteException e) {
+            } catch (RemoteException | AuthenticationException e) {
                 throw new RuntimeException(e);
             }
         }).thenAccept(info -> {

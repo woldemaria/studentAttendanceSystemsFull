@@ -210,8 +210,7 @@ public class ConfigManager {
     public void reload() {
         loadProperties();
     }
-}
-    
+
     // Static convenience methods for server usage
     
     /**
@@ -253,3 +252,4 @@ public class ConfigManager {
     public static long getLong(String key, long defaultValue) {
         return getInstance().getLongProperty(key, defaultValue);
     }
+}

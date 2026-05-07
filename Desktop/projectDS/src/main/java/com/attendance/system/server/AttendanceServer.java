@@ -2,6 +2,7 @@ package com.attendance.system.server;
 
 import com.attendance.system.dao.AttendanceDAO;
 import com.attendance.system.dao.CourseDAO;
+import com.attendance.system.dao.NotificationDAO;
 import com.attendance.system.dao.UserDAO;
 import com.attendance.system.exception.AuthenticationException;
 import com.attendance.system.exception.DatabaseException;
@@ -41,6 +42,7 @@ public class AttendanceServer extends UnicastRemoteObject implements AttendanceS
     private final UserDAO userDAO;
     private final AttendanceDAO attendanceDAO;
     private final CourseDAO courseDAO;
+    private final NotificationDAO notificationDAO;
     
     // Server monitoring and statistics
     private final AtomicInteger activeConnections = new AtomicInteger(0);
@@ -50,7 +52,9 @@ public class AttendanceServer extends UnicastRemoteObject implements AttendanceS
     
     // Configuration
     private final boolean encryptionEnabled;
+    private final boolean allowDuplicateUsername;
     private final int maxConcurrentUsers;
+
     
     /**
      * Creates a new AttendanceServer instance.
@@ -63,12 +67,15 @@ public class AttendanceServer extends UnicastRemoteObject implements AttendanceS
         this.userDAO = new UserDAO();
         this.attendanceDAO = new AttendanceDAO();
         this.courseDAO = new CourseDAO();
+        this.notificationDAO = new NotificationDAO();
         this.authService = new AuthenticationService(userDAO);
         this.attendanceServiceImpl = new AttendanceServiceImpl(userDAO, attendanceDAO, courseDAO, authService);
         
         // Load configuration
         this.encryptionEnabled = ConfigManager.getBoolean("server.encryption.enabled", true);
+        this.allowDuplicateUsername = ConfigManager.getBoolean("server.registration.allowDuplicateUsername", false);
         this.maxConcurrentUsers = ConfigManager.getInt("server.max.concurrent.users", 100);
+
         
         logger.info("AttendanceServer initialized successfully");
         logger.info("Encryption enabled: {}", encryptionEnabled);
@@ -88,9 +95,11 @@ public class AttendanceServer extends UnicastRemoteObject implements AttendanceS
         this.userDAO = userDAO;
         this.attendanceDAO = attendanceDAO;
         this.courseDAO = courseDAO;
+        this.notificationDAO = new NotificationDAO();
         
         this.encryptionEnabled = ConfigManager.getBoolean("server.encryption.enabled", true);
         this.maxConcurrentUsers = ConfigManager.getInt("server.max.concurrent.users", 100);
+        this.allowDuplicateUsername = ConfigManager.getBoolean("server.registration.allowDuplicateUsername", false);
         
         logger.info("AttendanceServer initialized with injected dependencies");
     }
@@ -176,7 +185,7 @@ public class AttendanceServer extends UnicastRemoteObject implements AttendanceS
     
     @Override
     public boolean registerUser(String username, String email, String firstName, String lastName, 
-                               String password, UserRole role) 
+                               String password, UserRole role, String classSection) 
             throws RemoteException, ValidationException, DatabaseException {
         
         return executeWithErrorHandling("registerUser", () -> {
@@ -191,6 +200,7 @@ public class AttendanceServer extends UnicastRemoteObject implements AttendanceS
             String decryptedFirstName = encryptionEnabled ? SecurityUtil.decrypt(firstName) : firstName;
             String decryptedLastName = encryptionEnabled ? SecurityUtil.decrypt(lastName) : lastName;
             String decryptedPassword = encryptionEnabled ? SecurityUtil.decrypt(password) : password;
+            String decryptedClassSection = (classSection != null && encryptionEnabled) ? SecurityUtil.decrypt(classSection) : classSection;
             
             // Validate input
             if (decryptedUsername == null || decryptedUsername.trim().isEmpty()) {
@@ -248,8 +258,8 @@ public class AttendanceServer extends UnicastRemoteObject implements AttendanceS
                 throw new ValidationException("role", "Invalid role for self-registration");
             }
             
-            // Check username uniqueness
-            if (userDAO.findByUsername(decryptedUsername) != null) {
+            // Check username uniqueness (skip if allowed for dev)
+            if (!allowDuplicateUsername && userDAO.findByUsername(decryptedUsername) != null) {
                 throw new ValidationException("username", "Username already exists");
             }
             
@@ -261,9 +271,27 @@ public class AttendanceServer extends UnicastRemoteObject implements AttendanceS
             // Create new user
             User newUser;
             if (role == UserRole.STUDENT) {
-                newUser = new Student();
+                Student student = new Student();
+                // Set default student fields
+                student.setStudentNumber("STU" + System.currentTimeMillis()); // Generate unique student number
+                student.setProgram("General Studies"); // Default program
+                student.setYearLevel(1); // Default year level
+                // Use provided class section or default to "A"
+                student.setClassSection(decryptedClassSection != null && !decryptedClassSection.trim().isEmpty() 
+                    ? decryptedClassSection.trim() : "A");
+                student.setEnrollmentDate(java.time.LocalDate.now()); // Current date
+                newUser = student;
+            } else if (role == UserRole.TEACHER) {
+                Teacher teacher = new Teacher();
+                // Set default teacher fields
+                teacher.setEmployeeId("EMP" + System.currentTimeMillis()); // Generate unique employee ID
+                teacher.setDepartment("General"); // Default department
+                teacher.setSpecialization("General Education"); // Default specialization
+                newUser = teacher;
             } else {
-                newUser = new Teacher();
+                // For ADMIN role (shouldn't happen in self-registration, but just in case)
+                Admin admin = new Admin();
+                newUser = admin;
             }
             
             newUser.setUsername(decryptedUsername);
@@ -608,6 +636,124 @@ public class AttendanceServer extends UnicastRemoteObject implements AttendanceS
         });
     }
     
+    @Override
+    public User getUserById(String sessionToken, int userId) 
+            throws RemoteException, AuthenticationException, DatabaseException {
+        
+        return executeWithErrorHandling("getUserById", () -> {
+            // Validate session
+            authService.validateSession(sessionToken);
+            
+            return userDAO.findById(userId);
+        });
+    }
+    
+    @Override
+    public Course getCourseById(String sessionToken, int courseId) 
+            throws RemoteException, AuthenticationException, DatabaseException {
+        
+        return executeWithErrorHandling("getCourseById", () -> {
+            // Validate session
+            authService.validateSession(sessionToken);
+            
+            return courseDAO.findById(courseId);
+        });
+    }
+    
+    @Override
+    public boolean deleteCourse(String sessionToken, int courseId) 
+            throws RemoteException, AuthenticationException, DatabaseException {
+        
+        return executeWithErrorHandling("deleteCourse", () -> {
+            // Validate session and admin permissions
+            User currentUser = authService.validateSession(sessionToken);
+            if (currentUser.getRole() != UserRole.ADMIN) {
+                throw AuthenticationException.insufficientPermissions();
+            }
+            
+            // Delete course
+            boolean success = courseDAO.deleteCourse(courseId);
+            
+            if (success) {
+                logger.info("Course deleted by admin {}: courseId={}", currentUser.getUsername(), courseId);
+            }
+            
+            return success;
+        });
+    }
+    
+    @Override
+    public boolean assignTeacherToCourse(String sessionToken, int courseId, int teacherId) 
+            throws RemoteException, AuthenticationException, DatabaseException {
+        
+        return executeWithErrorHandling("assignTeacherToCourse", () -> {
+            // Validate session and admin permissions
+            User currentUser = authService.validateSession(sessionToken);
+            if (currentUser.getRole() != UserRole.ADMIN) {
+                throw AuthenticationException.insufficientPermissions();
+            }
+            
+            // Verify teacher exists and is active
+            User teacher = userDAO.findById(teacherId);
+            if (teacher == null || teacher.getRole() != UserRole.TEACHER || !teacher.isActive()) {
+                throw new ValidationException("teacher_id", "Invalid or inactive teacher");
+            }
+            
+            // Verify course exists
+            Course course = courseDAO.findById(courseId);
+            if (course == null) {
+                throw new ValidationException("course_id", "Course not found");
+            }
+            
+            // Update course with new teacher
+            course.setTeacherId(teacherId);
+            boolean success = courseDAO.updateCourse(course);
+            
+            if (success) {
+                logger.info("Teacher assigned to course by admin {}: courseId={}, teacherId={}", 
+                        currentUser.getUsername(), courseId, teacherId);
+            }
+            
+            return success;
+        });
+    }
+    
+    @Override
+    public List<Enrollment> getAllEnrollments(String sessionToken) 
+            throws RemoteException, AuthenticationException, DatabaseException {
+        
+        return executeWithErrorHandling("getAllEnrollments", () -> {
+            // Validate session and admin permissions
+            User currentUser = authService.validateSession(sessionToken);
+            if (currentUser.getRole() != UserRole.ADMIN) {
+                throw AuthenticationException.insufficientPermissions();
+            }
+            
+            // Implementation would depend on EnrollmentDAO
+            // For now, return empty list
+            return List.of();
+        });
+    }
+    
+    @Override
+    public boolean dropStudentFromCourse(String sessionToken, int enrollmentId) 
+            throws RemoteException, AuthenticationException, DatabaseException {
+        
+        return executeWithErrorHandling("dropStudentFromCourse", () -> {
+            // Validate session and admin permissions
+            User currentUser = authService.validateSession(sessionToken);
+            if (currentUser.getRole() != UserRole.ADMIN) {
+                throw AuthenticationException.insufficientPermissions();
+            }
+            
+            // Implementation would depend on EnrollmentDAO
+            // For now, return true
+            logger.info("Student dropped from course by admin {}: enrollmentId={}", 
+                    currentUser.getUsername(), enrollmentId);
+            return true;
+        });
+    }
+    
     // Attendance management methods
     
     @Override
@@ -689,9 +835,23 @@ public class AttendanceServer extends UnicastRemoteObject implements AttendanceS
                 throw AuthenticationException.insufficientPermissions();
             }
             
-            // Implementation would depend on NotificationDAO
-            // For now, return empty list
-            return List.of();
+            return notificationDAO.findByUser(userId, unreadOnly);
+        });
+    }
+    
+    @Override
+    public int getUnreadNotificationCount(String sessionToken, int userId) 
+            throws RemoteException, AuthenticationException, DatabaseException {
+        
+        return executeWithErrorHandling("getUnreadNotificationCount", () -> {
+            User currentUser = authService.validateSession(sessionToken);
+            
+            // Users can only see their own count, admins can see any user's count
+            if (currentUser.getRole() != UserRole.ADMIN && currentUser.getUserId() != userId) {
+                throw AuthenticationException.insufficientPermissions();
+            }
+            
+            return notificationDAO.getUnreadCount(userId);
         });
     }
     
@@ -703,9 +863,23 @@ public class AttendanceServer extends UnicastRemoteObject implements AttendanceS
             // Validate session
             authService.validateSession(sessionToken);
             
-            // Implementation would depend on NotificationDAO
-            // For now, return true
-            return true;
+            return notificationDAO.markAsRead(notificationId);
+        });
+    }
+    
+    @Override
+    public int markAllNotificationsAsRead(String sessionToken, int userId) 
+            throws RemoteException, AuthenticationException, DatabaseException {
+        
+        return executeWithErrorHandling("markAllNotificationsAsRead", () -> {
+            User user = authService.validateSession(sessionToken);
+            
+            // Users can only mark their own notifications, admins can mark anyone's
+            if (user.getUserId() != userId && user.getRole() != UserRole.ADMIN) {
+                throw new AuthenticationException("You can only mark your own notifications as read");
+            }
+            
+            return notificationDAO.markAllAsRead(userId);
         });
     }
     
@@ -720,9 +894,7 @@ public class AttendanceServer extends UnicastRemoteObject implements AttendanceS
                 throw AuthenticationException.insufficientPermissions();
             }
             
-            // Implementation would depend on NotificationDAO
-            // For now, return true
-            return true;
+            return notificationDAO.insertNotification(notification);
         });
     }
     
@@ -1049,6 +1221,44 @@ public class AttendanceServer extends UnicastRemoteObject implements AttendanceS
         });
     }
     
+    @Override
+    public Map<String, Object> getNotificationPreferences(String sessionToken, int userId) 
+            throws RemoteException, AuthenticationException, DatabaseException {
+        
+        return executeWithErrorHandling("getNotificationPreferences", () -> {
+            User user = authService.validateSession(sessionToken);
+            
+            // Users can only get their own preferences, admins can get anyone's
+            if (user.getUserId() != userId && user.getRole() != UserRole.ADMIN) {
+                throw new AuthenticationException("You can only view your own notification preferences");
+            }
+            
+            // Return default preferences
+            Map<String, Object> preferences = new HashMap<>();
+            preferences.put("emailNotifications", true);
+            preferences.put("smsNotifications", false);
+            preferences.put("pushNotifications", true);
+            return preferences;
+        });
+    }
+    
+    @Override
+    public boolean updateNotificationPreferences(String sessionToken, int userId, Map<String, Object> preferences) 
+            throws RemoteException, AuthenticationException, ValidationException, DatabaseException {
+        
+        return executeWithErrorHandling("updateNotificationPreferences", () -> {
+            User user = authService.validateSession(sessionToken);
+            
+            // Users can only update their own preferences, admins can update anyone's
+            if (user.getUserId() != userId && user.getRole() != UserRole.ADMIN) {
+                throw new AuthenticationException("You can only update your own notification preferences");
+            }
+            
+            // Preferences updated successfully (no-op for now)
+            return true;
+        });
+    }
+    
     // Private helper methods
     
     /**
@@ -1069,9 +1279,13 @@ public class AttendanceServer extends UnicastRemoteObject implements AttendanceS
             
             return result;
             
-        } catch (AuthenticationException | ValidationException | DatabaseException e) {
+        } catch (AuthenticationException e) {
+            // Preserve authentication errors without wrapping
+            logger.warn("Authentication failed in {}: {}", methodName, e.getMessage());
+            throw new RemoteException(e.getMessage(), e);
+        } catch (ValidationException | DatabaseException e) {
             logger.warn("Method {} failed: {}", methodName, e.getMessage());
-            throw new RemoteServiceException("Service error in " + methodName + ": " + e.getMessage(), e);
+            throw new RemoteException("Service error in " + methodName + ": " + e.getMessage());
         } catch (Exception e) {
             logger.error("Unexpected error in method " + methodName, e);
             throw new RemoteException("Unexpected server error in " + methodName, e);

@@ -41,7 +41,7 @@ public class AttendanceMarkingPanelTest {
         MockitoAnnotations.openMocks(this);
         
         // Setup test data
-        currentTeacher = new Teacher("teacher1", "teacher@test.com", "John", "Doe", "EMP001");
+        currentTeacher = new Teacher("teacher1", "teacher@test.com", "John", "Doe", "EMP001", "Computer Science");
         currentTeacher.setUserId(1);
         
         testCourse = new Course("CS101", "Introduction to Computer Science", 3, "Fall", "2024");
@@ -52,8 +52,9 @@ public class AttendanceMarkingPanelTest {
         testStudents = new ArrayList<>();
         for (int i = 1; i <= 5; i++) {
             Student student = new Student("student" + i, "student" + i + "@test.com", 
-                    "Student", "Number" + i, "STU00" + i);
+                    "Student", "Number" + i, "STU00" + i, "General Studies", 1);
             student.setUserId(i + 1);
+            student.setClassSection("A");
             testStudents.add(student);
         }
         

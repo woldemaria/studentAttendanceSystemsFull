@@ -460,8 +460,7 @@ public class SecurityUtil {
         String dangerous = "[<>\"'%;()&+]";
         return !input.matches(".*" + dangerous + ".*");
     }
-}
-    
+
     /**
      * Convenience method for encrypting data.
      * @param data the data to encrypt

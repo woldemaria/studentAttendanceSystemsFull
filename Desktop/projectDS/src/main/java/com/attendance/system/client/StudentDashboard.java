@@ -104,17 +104,43 @@ public class StudentDashboard extends JPanel {
         dashboardPanel = new JPanel(new BorderLayout());
         dashboardPanel.setBackground(Color.WHITE);
         
-        // Title panel
+        // Title and student info panel
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(Color.WHITE);
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        // Title
         JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         titlePanel.setBackground(Color.WHITE);
-        titlePanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
         JLabel titleLabel = new JLabel("Student Dashboard");
         titleLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 24));
         titleLabel.setForeground(new Color(70, 130, 180));
         titlePanel.add(titleLabel);
         
-        dashboardPanel.add(titlePanel, BorderLayout.NORTH);
+        headerPanel.add(titlePanel, BorderLayout.NORTH);
+        
+        // Student info panel (show year level and class section)
+        if (currentUser instanceof Student) {
+            Student student = (Student) currentUser;
+            JPanel infoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            infoPanel.setBackground(Color.WHITE);
+            
+            JLabel studentInfoLabel = new JLabel(String.format(
+                "Student: %s | Student Number: %s | Year & Class: %s | Program: %s",
+                student.getFullName(),
+                student.getStudentNumber(),
+                student.getFullClassDesignation(),
+                student.getProgram()
+            ));
+            studentInfoLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+            studentInfoLabel.setForeground(new Color(100, 100, 100));
+            infoPanel.add(studentInfoLabel);
+            
+            headerPanel.add(infoPanel, BorderLayout.CENTER);
+        }
+        
+        dashboardPanel.add(headerPanel, BorderLayout.NORTH);
         
         // Main content panel
         JPanel contentPanel = new JPanel(new BorderLayout());

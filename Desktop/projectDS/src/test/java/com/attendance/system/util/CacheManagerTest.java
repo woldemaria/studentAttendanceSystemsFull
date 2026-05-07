@@ -111,8 +111,8 @@ public class CacheManagerTest {
         cacheManager.put("long:key", 1000L);
         
         assertEquals("string value", cacheManager.get("string:key"));
-        assertEquals(42, cacheManager.get("int:key"));
-        assertEquals(1000L, cacheManager.get("long:key"));
+        assertEquals(42, (Integer) cacheManager.get("int:key"));
+        assertEquals(1000L, (Long) cacheManager.get("long:key"));
     }
     
     @Test

@@ -6,7 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.*;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,7 +35,7 @@ public class UserDAO {
      */
     public User findByCredentials(String username, String passwordHash) throws DatabaseException {
         String sql = """
-            SELECT u.*, s.student_number, s.program, s.year_level, s.enrollment_date,
+            SELECT u.*, s.student_number, s.program, s.year_level, s.class_section, s.enrollment_date,
                    t.employee_id, t.department, t.specialization
             FROM USERS u
             LEFT JOIN STUDENTS s ON u.user_id = s.user_id
@@ -71,7 +71,7 @@ public class UserDAO {
      */
     public User findByUsername(String username) throws DatabaseException {
         String sql = """
-            SELECT u.*, s.student_number, s.program, s.year_level, s.enrollment_date,
+            SELECT u.*, s.student_number, s.program, s.year_level, s.class_section, s.enrollment_date,
                    t.employee_id, t.department, t.specialization
             FROM USERS u
             LEFT JOIN STUDENTS s ON u.user_id = s.user_id
@@ -106,7 +106,7 @@ public class UserDAO {
      */
     public User findByEmail(String email) throws DatabaseException {
         String sql = """
-            SELECT u.*, s.student_number, s.program, s.year_level, s.enrollment_date,
+            SELECT u.*, s.student_number, s.program, s.year_level, s.class_section, s.enrollment_date,
                    t.employee_id, t.department, t.specialization
             FROM USERS u
             LEFT JOIN STUDENTS s ON u.user_id = s.user_id
@@ -141,7 +141,7 @@ public class UserDAO {
      */
     public User findById(int userId) throws DatabaseException {
         String sql = """
-            SELECT u.*, s.student_number, s.program, s.year_level, s.enrollment_date,
+            SELECT u.*, s.student_number, s.program, s.year_level, s.class_section, s.enrollment_date,
                    t.employee_id, t.department, t.specialization
             FROM USERS u
             LEFT JOIN STUDENTS s ON u.user_id = s.user_id
@@ -265,28 +265,108 @@ public class UserDAO {
     }
     
     /**
-     * Deletes a user.
+     * Deletes a user and all related records.
      * @param userId the user ID to delete
      * @return true if user was deleted successfully
      * @throws DatabaseException if database error occurs
      */
     public boolean deleteUser(int userId) throws DatabaseException {
-        String sql = "DELETE FROM USERS WHERE user_id = ?";
-        
-        try (Connection connection = databaseManager.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        Connection connection = null;
+        try {
+            connection = databaseManager.getConnection();
+            connection.setAutoCommit(false); // Start transaction
             
-            statement.setInt(1, userId);
+            // First, check if user exists
+            User user = findById(userId);
+            if (user == null) {
+                throw new DatabaseException("User not found with ID: " + userId);
+            }
             
-            int rowsAffected = statement.executeUpdate();
+            // Handle cascade deletion based on user role
+            if (user.getRole() == UserRole.TEACHER) {
+                // Check if teacher has courses assigned
+                String checkCoursesSql = """
+                    SELECT COUNT(*) FROM COURSES c 
+                    JOIN TEACHERS t ON c.teacher_id = t.teacher_id 
+                    WHERE t.user_id = ?
+                    """;
+                
+                try (PreparedStatement checkStmt = connection.prepareStatement(checkCoursesSql)) {
+                    checkStmt.setInt(1, userId);
+                    try (ResultSet rs = checkStmt.executeQuery()) {
+                        if (rs.next() && rs.getInt(1) > 0) {
+                            throw new DatabaseException("Cannot delete teacher: Teacher has courses assigned. Please reassign or delete courses first.");
+                        }
+                    }
+                }
+                
+                // Delete teacher record first
+                String deleteTeacherSql = "DELETE FROM TEACHERS WHERE user_id = ?";
+                try (PreparedStatement stmt = connection.prepareStatement(deleteTeacherSql)) {
+                    stmt.setInt(1, userId);
+                    stmt.executeUpdate();
+                }
+                
+            } else if (user.getRole() == UserRole.STUDENT) {
+                // For students, attendance records and enrollments will be cascade deleted
+                // due to ON DELETE CASCADE constraints
+            }
+            
+            // Delete the user (this will cascade delete STUDENTS/TEACHERS records due to ON DELETE CASCADE)
+            String deleteUserSql = "DELETE FROM USERS WHERE user_id = ?";
+            int rowsAffected;
+            try (PreparedStatement statement = connection.prepareStatement(deleteUserSql)) {
+                statement.setInt(1, userId);
+                rowsAffected = statement.executeUpdate();
+            }
+            
             connection.commit();
             
-            logger.info("User deleted: ID = " + userId);
-            return rowsAffected > 0;
+            if (rowsAffected > 0) {
+                logger.info("User deleted successfully: ID = " + userId + ", Role = " + user.getRole());
+                return true;
+            } else {
+                logger.warn("No user found to delete with ID: " + userId);
+                return false;
+            }
             
         } catch (SQLException e) {
-            logger.error("Failed to delete user: " + userId, e);
-            throw DatabaseException.queryFailed(sql, e);
+            if (connection != null) {
+                try {
+                    connection.rollback();
+                } catch (SQLException rollbackEx) {
+                    logger.error("Failed to rollback transaction", rollbackEx);
+                }
+            }
+            
+            // Provide more specific error messages
+            String errorMessage = e.getMessage();
+            if (errorMessage.contains("foreign key constraint")) {
+                throw new DatabaseException("Cannot delete user: User has related records that must be removed first.");
+            } else if (errorMessage.contains("Cannot delete or update a parent row")) {
+                throw new DatabaseException("Cannot delete user: User has dependent records. Please remove related data first.");
+            } else {
+                logger.error("Failed to delete user: " + userId, e);
+                throw new DatabaseException("Failed to delete user: " + errorMessage);
+            }
+        } catch (DatabaseException e) {
+            if (connection != null) {
+                try {
+                    connection.rollback();
+                } catch (SQLException rollbackEx) {
+                    logger.error("Failed to rollback transaction", rollbackEx);
+                }
+            }
+            throw e;
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.setAutoCommit(true);
+                    connection.close();
+                } catch (SQLException e) {
+                    logger.error("Failed to close connection", e);
+                }
+            }
         }
     }
     
@@ -298,7 +378,7 @@ public class UserDAO {
      */
     public List<User> findByRole(UserRole role) throws DatabaseException {
         String sql = """
-            SELECT u.*, s.student_number, s.program, s.year_level, s.enrollment_date,
+            SELECT u.*, s.student_number, s.program, s.year_level, s.class_section, s.enrollment_date,
                    t.employee_id, t.department, t.specialization
             FROM USERS u
             LEFT JOIN STUDENTS s ON u.user_id = s.user_id
@@ -335,7 +415,7 @@ public class UserDAO {
      */
     public List<User> findAll() throws DatabaseException {
         String sql = """
-            SELECT u.*, s.student_number, s.program, s.year_level, s.enrollment_date,
+            SELECT u.*, s.student_number, s.program, s.year_level, s.class_section, s.enrollment_date,
                    t.employee_id, t.department, t.specialization
             FROM USERS u
             LEFT JOIN STUDENTS s ON u.user_id = s.user_id
@@ -393,8 +473,8 @@ public class UserDAO {
     
     private void createStudentProfile(Connection connection, Student student) throws SQLException {
         String sql = """
-            INSERT INTO STUDENTS (user_id, student_number, program, year_level, enrollment_date)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO STUDENTS (user_id, student_number, program, year_level, class_section, enrollment_date)
+            VALUES (?, ?, ?, ?, ?, ?)
             """;
         
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -402,7 +482,14 @@ public class UserDAO {
             statement.setString(2, student.getStudentNumber());
             statement.setString(3, student.getProgram());
             statement.setInt(4, student.getYearLevel());
-            statement.setDate(5, Date.valueOf(student.getEnrollmentDate()));
+            statement.setString(5, student.getClassSection() != null ? student.getClassSection() : "A");
+            
+            // Set enrollment date - use current date if null
+            LocalDate enrollmentDate = student.getEnrollmentDate();
+            if (enrollmentDate == null) {
+                enrollmentDate = LocalDate.now();
+            }
+            statement.setDate(6, Date.valueOf(enrollmentDate));
             
             statement.executeUpdate();
         }
@@ -470,6 +557,7 @@ public class UserDAO {
                 student.setStudentNumber(rs.getString("student_number"));
                 student.setProgram(rs.getString("program"));
                 student.setYearLevel(rs.getInt("year_level"));
+                student.setClassSection(rs.getString("class_section"));
                 Date enrollmentDate = rs.getDate("enrollment_date");
                 if (enrollmentDate != null) {
                     student.setEnrollmentDate(enrollmentDate.toLocalDate());
@@ -514,7 +602,7 @@ public class UserDAO {
         
         return user;
     }
-}
+
     /**
      * Tests database connection.
      * @return true if connection is successful
@@ -578,3 +666,4 @@ public class UserDAO {
             throw new DatabaseException("Failed to get active user count", e);
         }
     }
+}

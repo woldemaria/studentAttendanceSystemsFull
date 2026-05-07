@@ -232,6 +232,14 @@ public class CacheManager {
     private static class AtomicLong {
         private long value = 0;
         
+        public AtomicLong() {
+            this.value = 0;
+        }
+        
+        public AtomicLong(int initialValue) {
+            this.value = initialValue;
+        }
+        
         public synchronized void incrementAndGet() {
             value++;
         }

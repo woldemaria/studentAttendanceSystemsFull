@@ -1,0 +1,14 @@
+2026-05-08 00:21:50.115 [SECURITY] INFO  Security Event [LOW] - Event: Test event, Details: Low severity
+2026-05-08 00:21:50.119 [SECURITY] INFO  Security Event [MEDIUM] - Event: Test event, Details: Medium severity
+2026-05-08 00:21:50.119 [SECURITY] WARN  Security Event [HIGH] - Event: Test event, Details: High severity
+2026-05-08 00:21:50.119 [SECURITY] ERROR Security Event [CRITICAL] - Event: Test event, Details: Critical severity
+2026-05-08 00:21:50.127 [SECURITY] WARN  Security Event [HIGH] - Event: Unauthorized access attempt, Details: User attempted to access restricted resource
+2026-05-08 00:21:50.140 [SECURITY] WARN  Security Event [HIGH] - Event: Unauthorized access attempt, User: user123, Details: User attempted to access restricted resource, Context: {method=DELETE, resource=/admin/users}
+2026-05-08 00:21:56.930 [SECURITY] INFO  Security Event [MEDIUM] - Event: Invalid credentials, User: user123, Details: User user123 provided invalid credentials, Context: {}
+2026-05-08 00:22:04.049 [SECURITY] WARN  Security Event [HIGH] - Event: Circuit breaker opened, Details: Circuit breaker 'TestBreaker' opened after 3 failures
+2026-05-08 00:22:04.058 [SECURITY] WARN  Security Event [HIGH] - Event: Database connection failure, Details: Failed to connect to database
+2026-05-08 00:22:04.060 [SECURITY] WARN  Security Event [HIGH] - Event: Account locked, User: user123, Details: Account for user user123 is locked, Context: {}
+2026-05-08 00:22:04.068 [SECURITY] WARN  Security Event [HIGH] - Event: Circuit breaker opened, Details: Circuit breaker 'TestBreaker' opened after 1 failures
+2026-05-08 00:22:04.071 [SECURITY] WARN  Security Event [HIGH] - Event: RMI server unavailable, Details: RMI server is not responding
+2026-05-08 00:22:04.076 [SECURITY] WARN  Security Event [HIGH] - Event: RMI connection lost, Details: Connection to RMI server lost during operation: MarkAttendance
+2026-05-08 00:22:04.077 [SECURITY] WARN  Security Event [HIGH] - Event: Circuit breaker opened, Details: Circuit breaker 'TestBreaker' opened after 1 failures

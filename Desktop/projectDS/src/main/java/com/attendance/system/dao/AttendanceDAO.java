@@ -45,7 +45,10 @@ public class AttendanceDAO {
         try (Connection connection = databaseManager.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             
-            statement.setInt(1, record.getStudentId());
+            // Convert user_id to student_id
+            int studentId = getStudentIdFromUserId(record.getStudentId());
+            
+            statement.setInt(1, studentId);
             statement.setInt(2, record.getCourseId());
             statement.setDate(3, Date.valueOf(record.getAttendanceDate()));
             statement.setTime(4, Time.valueOf(record.getClassTime()));
@@ -70,6 +73,34 @@ public class AttendanceDAO {
             
         } catch (SQLException e) {
             logger.error("Failed to insert attendance record", e);
+            throw DatabaseException.queryFailed(sql, e);
+        }
+    }
+    
+    /**
+     * Helper method to get student_id from user_id.
+     * @param userId the user ID
+     * @return the student ID from STUDENTS table
+     * @throws DatabaseException if student not found or database error
+     */
+    private int getStudentIdFromUserId(int userId) throws DatabaseException {
+        String sql = "SELECT student_id FROM STUDENTS WHERE user_id = ?";
+        
+        try (Connection connection = databaseManager.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            
+            statement.setInt(1, userId);
+            
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return resultSet.getInt("student_id");
+                } else {
+                    throw new DatabaseException("Student not found for user_id: " + userId);
+                }
+            }
+            
+        } catch (SQLException e) {
+            logger.error("Failed to get student_id for user_id: " + userId, e);
             throw DatabaseException.queryFailed(sql, e);
         }
     }
@@ -531,7 +562,7 @@ public class AttendanceDAO {
         
         return record;
     }
-}
+
     /**
      * Tests database connection.
      * @return true if connection is successful
@@ -571,4 +602,4 @@ public class AttendanceDAO {
             logger.error("Failed to get total attendance record count", e);
             throw new DatabaseException("Failed to get total attendance record count", e);
         }
-    }
+    }}

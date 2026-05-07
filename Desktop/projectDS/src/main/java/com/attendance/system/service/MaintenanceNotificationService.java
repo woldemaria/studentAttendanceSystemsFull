@@ -40,13 +40,12 @@ public class MaintenanceNotificationService implements MaintenanceManager.Mainte
     public void notifyAllUsers(String title, String message) {
         for (User user : allUsers) {
             try {
-                Notification notification = new Notification(
+                notificationService.sendNotification(
                         user.getUserId(),
                         title,
                         message,
                         NotificationType.SYSTEM_NOTIFICATION
                 );
-                notificationService.sendNotification(notification);
                 logger.debug("Maintenance notification sent to user: {}", user.getUserId());
             } catch (Exception e) {
                 logger.error("Failed to send maintenance notification to user: {}", user.getUserId(), e);

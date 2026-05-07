@@ -288,7 +288,8 @@ public class AuthenticationService {
     /**
      * Inner class representing a user session.
      */
-    public static class UserSession {
+    public static class UserSession implements java.io.Serializable {
+        private static final long serialVersionUID = 1L;
         private final User user;
         private final String sessionToken;
         private final LocalDateTime createdAt;
@@ -363,7 +364,8 @@ public class AuthenticationService {
     /**
      * Inner class representing an authenticated user with session token.
      */
-    public static class AuthenticatedUser {
+    public static class AuthenticatedUser implements java.io.Serializable {
+        private static final long serialVersionUID = 1L;
         private final User user;
         private final String sessionToken;
         

@@ -55,6 +55,10 @@ public class LoginFrame extends JPanel {
         // Create form fields
         usernameField = new JTextField(20);
         usernameField.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 14));
+        usernameField.setBackground(Color.WHITE);
+        usernameField.setForeground(Color.BLACK);
+        usernameField.setCaretColor(Color.BLACK);
+        usernameField.setOpaque(true);
         usernameField.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(Color.GRAY),
                 BorderFactory.createEmptyBorder(8, 8, 8, 8)
@@ -62,6 +66,10 @@ public class LoginFrame extends JPanel {
         
         passwordField = new JPasswordField(20);
         passwordField.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 14));
+        passwordField.setBackground(Color.WHITE);
+        passwordField.setForeground(Color.BLACK);
+        passwordField.setCaretColor(Color.BLACK);
+        passwordField.setOpaque(true);
         passwordField.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(Color.GRAY),
                 BorderFactory.createEmptyBorder(8, 8, 8, 8)
@@ -96,6 +104,7 @@ public class LoginFrame extends JPanel {
         // Create checkbox for showing password
         showPasswordCheckBox = new JCheckBox("Show password");
         showPasswordCheckBox.setBackground(Color.WHITE);
+        showPasswordCheckBox.setForeground(Color.BLACK);
         
         // Create status and progress components
         statusLabel = new JLabel(" ");
@@ -154,6 +163,7 @@ public class LoginFrame extends JPanel {
         // Username label and field
         JLabel usernameLabel = new JLabel("Username:");
         usernameLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
+        usernameLabel.setForeground(Color.BLACK);
         gbc.gridx = 0;
         gbc.gridy = 2;
         mainContainer.add(usernameLabel, gbc);
@@ -172,6 +182,7 @@ public class LoginFrame extends JPanel {
         gbc.insets = new Insets(5, 10, 5, 10);
         JLabel passwordLabel = new JLabel("Password:");
         passwordLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
+        passwordLabel.setForeground(Color.BLACK);
         gbc.gridx = 0;
         gbc.gridy = 4;
         gbc.fill = GridBagConstraints.NONE;
@@ -453,13 +464,68 @@ public class LoginFrame extends JPanel {
                 setFormEnabled(true);
                 showProgress(false);
                 
-                String errorMessage = "Login failed";
-                if (throwable.getCause() instanceof AuthenticationException) {
-                    errorMessage = throwable.getCause().getMessage();
-                } else if (throwable.getCause() instanceof RemoteException) {
-                    errorMessage = "Server communication error";
-                } else if (throwable.getCause() != null) {
-                    errorMessage = throwable.getCause().getMessage();
+                String errorMessage = "Unable to connect to server";
+                
+                // Extract the root cause
+                Throwable cause = throwable.getCause();
+                if (cause != null) {
+                    String causeMessage = cause.getMessage();
+                    
+                    // Check for specific error types
+                    if (cause instanceof AuthenticationException) {
+                        // Direct authentication errors
+                        if (causeMessage.contains("Invalid username or password") || 
+                            causeMessage.contains("Authentication failed") ||
+                            causeMessage.contains("User not found")) {
+                            errorMessage = "Incorrect username or password";
+                        } else if (causeMessage.contains("locked")) {
+                            errorMessage = "Account is locked";
+                        } else if (causeMessage.contains("disabled")) {
+                            errorMessage = "Account is disabled";
+                        } else {
+                            errorMessage = causeMessage;
+                        }
+                    } else if (cause instanceof RemoteException) {
+                        // RemoteException - extract the meaningful part
+                        if (causeMessage != null) {
+                            // Check for authentication-related errors
+                            if (causeMessage.contains("Invalid username or password") ||
+                                causeMessage.contains("Authentication failed") ||
+                                causeMessage.contains("User not found")) {
+                                errorMessage = "Incorrect username or password";
+                            } else if (causeMessage.contains("locked")) {
+                                errorMessage = "Account is locked";
+                            } else if (causeMessage.contains("disabled")) {
+                                errorMessage = "Account is disabled";
+                            } else if (causeMessage.contains("nested exception")) {
+                                // Extract the nested exception message
+                                int nestedIndex = causeMessage.indexOf("nested exception is:");
+                                if (nestedIndex != -1) {
+                                    String nestedMsg = causeMessage.substring(nestedIndex + 20).trim();
+                                    // Remove the exception class name
+                                    int colonIndex = nestedMsg.indexOf(':');
+                                    if (colonIndex != -1) {
+                                        nestedMsg = nestedMsg.substring(colonIndex + 1).trim();
+                                    }
+                                    errorMessage = nestedMsg.isEmpty() ? "Server communication error" : nestedMsg;
+                                } else {
+                                    errorMessage = "Server communication error";
+                                }
+                            } else {
+                                errorMessage = "Server communication error";
+                            }
+                        }
+                    } else {
+                        // Other exceptions
+                        if (causeMessage != null) {
+                            if (causeMessage.contains("Invalid username or password") ||
+                                causeMessage.contains("Authentication failed")) {
+                                errorMessage = "Incorrect username or password";
+                            } else {
+                                errorMessage = causeMessage;
+                            }
+                        }
+                    }
                 }
                 
                 setStatus(errorMessage, Color.RED);

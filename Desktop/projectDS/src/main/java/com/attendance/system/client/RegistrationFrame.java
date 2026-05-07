@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -35,6 +36,7 @@ public class RegistrationFrame extends JPanel {
     private JPasswordField passwordField;
     private JPasswordField confirmPasswordField;
     private JComboBox<UserRole> roleComboBox;
+    private JComboBox<String> classSectionComboBox; // For student class section
     private JButton registerButton;
     private JButton cancelButton;
     private JLabel statusLabel;
@@ -89,10 +91,17 @@ public class RegistrationFrame extends JPanel {
         confirmPasswordField.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 14));
         confirmPasswordField.setBorder(createFieldBorder());
         
-        // Create role combo box
+        // Create role combo box - allow STUDENT and TEACHER roles
         roleComboBox = new JComboBox<>(new UserRole[]{UserRole.STUDENT, UserRole.TEACHER});
         roleComboBox.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 14));
         roleComboBox.setSelectedItem(UserRole.STUDENT);
+        roleComboBox.setEnabled(true); // Enable role selection
+        
+        // Create class section combo box (for students)
+        classSectionComboBox = new JComboBox<>(new String[]{"A", "B", "C", "D"});
+        classSectionComboBox.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 14));
+        classSectionComboBox.setSelectedItem("A");
+        classSectionComboBox.setVisible(true); // Show by default since STUDENT is selected
         
         // Create buttons
         registerButton = new JButton("Register");
@@ -269,7 +278,7 @@ public class RegistrationFrame extends JPanel {
         gbc.insets = new Insets(0, 10, 5, 10);
         mainContainer.add(emailErrorLabel, gbc);
         
-        // Role
+        // Role selection
         gbc.insets = new Insets(5, 10, 5, 10);
         JLabel roleLabel = new JLabel("Account Type:");
         roleLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
@@ -277,17 +286,27 @@ public class RegistrationFrame extends JPanel {
         gbc.gridy = 10;
         gbc.fill = GridBagConstraints.NONE;
         mainContainer.add(roleLabel, gbc);
-        
         gbc.gridx = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         mainContainer.add(roleComboBox, gbc);
+        
+        // Class Section (for students only)
+        JLabel classSectionLabel = new JLabel("Class Section:");
+        classSectionLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
+        gbc.gridx = 0;
+        gbc.gridy = 11;
+        gbc.fill = GridBagConstraints.NONE;
+        mainContainer.add(classSectionLabel, gbc);
+        gbc.gridx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        mainContainer.add(classSectionComboBox, gbc);
         
         // Password
         gbc.insets = new Insets(5, 10, 5, 10);
         JLabel passwordLabel = new JLabel("Password:");
         passwordLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
         gbc.gridx = 0;
-        gbc.gridy = 11;
+        gbc.gridy = 12;
         gbc.fill = GridBagConstraints.NONE;
         mainContainer.add(passwordLabel, gbc);
         
@@ -297,7 +316,7 @@ public class RegistrationFrame extends JPanel {
         
         // Password error label
         gbc.gridx = 1;
-        gbc.gridy = 12;
+        gbc.gridy = 13;
         gbc.insets = new Insets(0, 10, 5, 10);
         mainContainer.add(passwordErrorLabel, gbc);
         
@@ -306,7 +325,7 @@ public class RegistrationFrame extends JPanel {
         JLabel confirmPasswordLabel = new JLabel("Confirm Password:");
         confirmPasswordLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
         gbc.gridx = 0;
-        gbc.gridy = 13;
+        gbc.gridy = 14;
         gbc.fill = GridBagConstraints.NONE;
         mainContainer.add(confirmPasswordLabel, gbc);
         
@@ -316,13 +335,13 @@ public class RegistrationFrame extends JPanel {
         
         // Confirm Password error label
         gbc.gridx = 1;
-        gbc.gridy = 14;
+        gbc.gridy = 15;
         gbc.insets = new Insets(0, 10, 5, 10);
         mainContainer.add(confirmPasswordErrorLabel, gbc);
         
         // Show password checkbox
         gbc.insets = new Insets(5, 10, 15, 10);
-        gbc.gridy = 15;
+        gbc.gridy = 16;
         mainContainer.add(showPasswordCheckBox, gbc);
         
         // Button panel
@@ -332,19 +351,19 @@ public class RegistrationFrame extends JPanel {
         buttonPanel.add(cancelButton);
         
         gbc.gridx = 0;
-        gbc.gridy = 16;
+        gbc.gridy = 17;
         gbc.gridwidth = 2;
         gbc.fill = GridBagConstraints.NONE;
         gbc.anchor = GridBagConstraints.CENTER;
         mainContainer.add(buttonPanel, gbc);
         
         // Status label
-        gbc.gridy = 17;
+        gbc.gridy = 18;
         gbc.insets = new Insets(15, 10, 5, 10);
         mainContainer.add(statusLabel, gbc);
         
         // Progress bar
-        gbc.gridy = 18;
+        gbc.gridy = 19;
         gbc.insets = new Insets(5, 10, 10, 10);
         mainContainer.add(progressBar, gbc);
         
@@ -365,6 +384,15 @@ public class RegistrationFrame extends JPanel {
         cancelButton.addActionListener(e -> {
             clearForm();
             parentFrame.showLoginFrame();
+        });
+        
+        // Role selection change listener
+        roleComboBox.addActionListener(e -> {
+            UserRole selectedRole = (UserRole) roleComboBox.getSelectedItem();
+            boolean isStudent = selectedRole == UserRole.STUDENT;
+            classSectionComboBox.setVisible(isStudent);
+            classSectionComboBox.getParent().revalidate();
+            classSectionComboBox.getParent().repaint();
         });
         
         // Show password checkbox
@@ -657,8 +685,14 @@ public class RegistrationFrame extends JPanel {
                 String password = new String(passwordField.getPassword());
                 UserRole role = (UserRole) roleComboBox.getSelectedItem();
                 
+                // Get class section for students
+                String classSection = null;
+                if (role == UserRole.STUDENT && classSectionComboBox.isVisible()) {
+                    classSection = (String) classSectionComboBox.getSelectedItem();
+                }
+                
                 // Call remote registration service
-                service.registerUser(username, email, firstName, lastName, password, role);
+                service.registerUser(username, email, firstName, lastName, password, role, classSection);
                 
                 // Success
                 SwingUtilities.invokeLater(() -> {

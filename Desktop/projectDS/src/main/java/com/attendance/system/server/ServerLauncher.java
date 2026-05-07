@@ -24,7 +24,7 @@ public class ServerLauncher {
     
     // Configuration constants
     private static final String DEFAULT_SERVICE_NAME = "AttendanceService";
-    private static final int DEFAULT_RMI_PORT = 1099;
+    private static final int DEFAULT_RMI_PORT = 1100;
     private static final int DEFAULT_SERVER_PORT = 0; // Use anonymous port
     
     // Server components
@@ -143,14 +143,6 @@ public class ServerLauncher {
      * @return server port number
      */
     public int getServerPort() {
-        if (attendanceServer != null) {
-            try {
-                // Get the port from the exported object
-                return UnicastRemoteObject.getPort(attendanceServer);
-            } catch (Exception e) {
-                logger.debug("Could not determine server port", e);
-            }
-        }
         return serverPort;
     }
     

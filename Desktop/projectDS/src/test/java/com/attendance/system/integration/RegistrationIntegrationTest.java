@@ -64,7 +64,7 @@ public class RegistrationIntegrationTest {
             "John",
             "Doe",
             "SecurePass123!",
-            UserRole.STUDENT
+            UserRole.STUDENT, "A"
         );
         
         // Verify
@@ -89,7 +89,7 @@ public class RegistrationIntegrationTest {
             "Jane",
             "Smith",
             "TeacherPass123!",
-            UserRole.TEACHER
+            UserRole.TEACHER, null
         );
         
         // Verify
@@ -115,7 +115,7 @@ public class RegistrationIntegrationTest {
                 "New",
                 "User",
                 "ValidPass123!",
-                UserRole.STUDENT
+                UserRole.STUDENT, "A"
             );
         });
         
@@ -126,7 +126,7 @@ public class RegistrationIntegrationTest {
     
     @Test
     @DisplayName("Integration: registration failure with database error")
-    public void testRegistrationDatabaseError() {
+    public void testRegistrationDatabaseError() throws DatabaseException {
         // Setup
         when(mockUserDAO.findByUsername("newuser")).thenReturn(null);
         when(mockUserDAO.findByEmail("new@example.com")).thenReturn(null);
@@ -142,7 +142,7 @@ public class RegistrationIntegrationTest {
                 "New",
                 "User",
                 "ValidPass123!",
-                UserRole.STUDENT
+                UserRole.STUDENT, "A"
             );
         });
     }
@@ -164,7 +164,7 @@ public class RegistrationIntegrationTest {
             "Test",
             "User",
             "TestPass123!",
-            UserRole.STUDENT
+            UserRole.STUDENT, "A"
         );
         
         // Verify user data
@@ -195,7 +195,7 @@ public class RegistrationIntegrationTest {
             "Test",
             "User",
             plainPassword,
-            UserRole.STUDENT
+            UserRole.STUDENT, "A"
         );
         
         // Verify password is hashed
@@ -212,7 +212,7 @@ public class RegistrationIntegrationTest {
     
     @Test
     @DisplayName("Integration: concurrent registrations with same username")
-    public void testConcurrentRegistrationsSameUsername() throws InterruptedException {
+    public void testConcurrentRegistrationsSameUsername() throws InterruptedException, DatabaseException {
         // Setup
         when(mockUserDAO.findByUsername("concurrent")).thenReturn(null);
         when(mockUserDAO.findByEmail("user1@example.com")).thenReturn(null);
@@ -222,7 +222,7 @@ public class RegistrationIntegrationTest {
         // Execute concurrent registrations
         Thread thread1 = new Thread(() -> {
             try {
-                server.registerUser("concurrent", "user1@example.com", "User", "One", "Pass123!", UserRole.STUDENT);
+                server.registerUser("concurrent", "user1@example.com", "User", "One", "Pass123!", UserRole.STUDENT, "A");
             } catch (Exception e) {
                 // Expected to fail
             }
@@ -230,7 +230,7 @@ public class RegistrationIntegrationTest {
         
         Thread thread2 = new Thread(() -> {
             try {
-                server.registerUser("concurrent", "user2@example.com", "User", "Two", "Pass123!", UserRole.STUDENT);
+                server.registerUser("concurrent", "user2@example.com", "User", "Two", "Pass123!", UserRole.STUDENT, "A");
             } catch (Exception e) {
                 // Expected to fail
             }
@@ -262,7 +262,7 @@ public class RegistrationIntegrationTest {
             "Jean-Pierre",
             "O'Brien",
             "TestPass123!",
-            UserRole.STUDENT
+            UserRole.STUDENT, "A"
         );
         
         // Verify
@@ -292,7 +292,7 @@ public class RegistrationIntegrationTest {
             maxFirstName,
             maxLastName,
             "TestPass123!",
-            UserRole.STUDENT
+            UserRole.STUDENT, "A"
         );
         
         // Verify
@@ -315,7 +315,7 @@ public class RegistrationIntegrationTest {
             "A",
             "B",
             "TestPass123!",
-            UserRole.STUDENT
+            UserRole.STUDENT, "A"
         );
         
         // Verify

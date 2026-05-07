@@ -44,6 +44,7 @@ public class UserEditDialog extends JDialog {
     // Panels for role-specific fields
     private JPanel studentFieldsPanel;
     private JPanel teacherFieldsPanel;
+    private JPanel roleFieldsContainer;
     
     // Buttons
     private JButton saveButton;
@@ -241,7 +242,7 @@ public class UserEditDialog extends JDialog {
         add(buttonPanel, BorderLayout.SOUTH);
         
         // Store reference to role fields container for later use
-        putClientProperty("roleFieldsContainer", roleFieldsContainer);
+        this.roleFieldsContainer = roleFieldsContainer;
     }
     
     /**
@@ -273,15 +274,14 @@ public class UserEditDialog extends JDialog {
      */
     private void updateRoleSpecificFields() {
         UserRole selectedRole = (UserRole) roleComboBox.getSelectedItem();
-        JPanel container = (JPanel) getClientProperty("roleFieldsContainer");
-        CardLayout cardLayout = (CardLayout) container.getLayout();
+        CardLayout cardLayout = (CardLayout) roleFieldsContainer.getLayout();
         
         if (selectedRole == UserRole.STUDENT) {
-            cardLayout.show(container, "STUDENT");
+            cardLayout.show(roleFieldsContainer, "STUDENT");
         } else if (selectedRole == UserRole.TEACHER) {
-            cardLayout.show(container, "TEACHER");
+            cardLayout.show(roleFieldsContainer, "TEACHER");
         } else {
-            cardLayout.show(container, "EMPTY");
+            cardLayout.show(roleFieldsContainer, "EMPTY");
         }
         
         pack();

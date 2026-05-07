@@ -1,0 +1,108 @@
+2026-05-07 02:04:01.319 [main] INFO  c.a.system.server.ServerLauncher - Starting Student Attendance System Server...
+2026-05-07 02:04:01.321 [main] INFO  c.a.system.server.ServerLauncher - Initializing database connection...
+2026-05-07 02:04:01.378 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2026-05-07 02:04:01.813 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@5fb759d6
+2026-05-07 02:04:01.816 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2026-05-07 02:04:01.816 [main] INFO  c.a.system.dao.DatabaseManager - Database connection pool initialized successfully
+2026-05-07 02:04:01.824 [main] DEBUG c.a.system.dao.DatabaseManager - Database connection test successful
+2026-05-07 02:04:01.843 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-2 - Starting...
+2026-05-07 02:04:01.851 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-2 - Added connection com.mysql.cj.jdbc.ConnectionImpl@2d29b4ee
+2026-05-07 02:04:01.852 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-2 - Start completed.
+2026-05-07 02:04:01.852 [main] INFO  c.a.system.dao.DatabaseManager - Database connection pool initialized successfully
+2026-05-07 02:04:01.853 [main] DEBUG c.a.system.dao.DatabaseManager - Database connection test successful
+2026-05-07 02:04:01.854 [main] DEBUG c.a.system.dao.DatabaseManager - Database connection test successful
+2026-05-07 02:04:01.855 [main] INFO  c.a.system.server.ServerLauncher - Database connection established successfully
+2026-05-07 02:04:01.855 [main] DEBUG c.a.system.server.ServerLauncher - Setting up RMI system properties...
+2026-05-07 02:04:01.855 [main] INFO  c.a.system.server.ServerLauncher - RMI server hostname set to: localhost
+2026-05-07 02:04:01.856 [main] INFO  c.a.system.server.ServerLauncher - Setting up RMI registry on port 1099...
+2026-05-07 02:04:01.892 [main] INFO  c.a.system.server.ServerLauncher - Created new RMI registry on port 1099
+2026-05-07 02:04:01.892 [main] INFO  c.a.system.server.ServerLauncher - Creating and exporting attendance server...
+2026-05-07 02:04:01.948 [main] INFO  c.a.system.server.AttendanceServer - AttendanceServer initialized successfully
+2026-05-07 02:04:01.949 [main] INFO  c.a.system.server.AttendanceServer - Encryption enabled: true
+2026-05-07 02:04:01.950 [main] INFO  c.a.system.server.AttendanceServer - Max concurrent users: 100
+2026-05-07 02:04:01.950 [main] INFO  c.a.system.server.ServerLauncher - Attendance server created and exported successfully
+2026-05-07 02:04:01.950 [main] INFO  c.a.system.server.ServerLauncher - Binding server to registry with name 'AttendanceService'...
+2026-05-07 02:04:01.950 [main] INFO  c.a.system.server.ServerLauncher - Server bound to registry successfully
+2026-05-07 02:04:01.950 [main] INFO  c.a.system.server.ServerLauncher - Starting maintenance tasks...
+2026-05-07 02:04:01.956 [main] INFO  c.a.system.server.ServerLauncher - Maintenance tasks started
+2026-05-07 02:04:01.960 [main] INFO  c.a.system.server.ServerLauncher - Server started successfully!
+2026-05-07 02:04:01.960 [main] INFO  c.a.system.server.ServerLauncher - Service name: AttendanceService
+2026-05-07 02:04:01.960 [main] INFO  c.a.system.server.ServerLauncher - RMI registry port: 1099
+2026-05-07 02:04:01.960 [main] INFO  c.a.system.server.ServerLauncher - Server listening on port: 0
+2026-05-07 02:04:01.960 [main] INFO  c.a.system.server.ServerLauncher - Server is ready to accept client connections.
+2026-05-07 02:05:01.955 [pool-1-thread-2] DEBUG c.a.system.server.ServerLauncher - Server stats - Active connections: 0, Total requests: 0
+2026-05-07 02:06:01.955 [pool-1-thread-2] DEBUG c.a.system.server.ServerLauncher - Server stats - Active connections: 0, Total requests: 0
+2026-05-07 02:07:01.826 [RMI TCP Connection(2)-127.0.0.1] DEBUG c.a.system.server.AttendanceServer - Executing method: authenticateUser
+2026-05-07 02:07:01.827 [RMI TCP Connection(2)-127.0.0.1] DEBUG c.a.system.server.AttendanceServer - Authentication request for user: admin
+2026-05-07 02:07:01.844 [RMI TCP Connection(2)-127.0.0.1] WARN  c.a.system.util.SecurityUtil - ATTENDANCE_ENCRYPTION_KEY environment variable not set. Using default key for development only.
+2026-05-07 02:07:01.846 [RMI TCP Connection(2)-127.0.0.1] ERROR c.a.system.util.SecurityUtil - Decryption failed for data
+java.lang.IllegalArgumentException: Last unit does not have enough valid bits
+	at java.base/java.util.Base64$Decoder.decode0(Base64.java:872)
+	at java.base/java.util.Base64$Decoder.decode(Base64.java:570)
+	at java.base/java.util.Base64$Decoder.decode(Base64.java:593)
+	at com.attendance.system.util.SecurityUtil.decryptData(SecurityUtil.java:252)
+	at com.attendance.system.util.SecurityUtil.decryptData(SecurityUtil.java:235)
+	at com.attendance.system.util.SecurityUtil.decrypt(SecurityUtil.java:479)
+	at com.attendance.system.server.AttendanceServer.lambda$authenticateUser$0(AttendanceServer.java:111)
+	at com.attendance.system.server.AttendanceServer.executeWithErrorHandling(AttendanceServer.java:1139)
+	at com.attendance.system.server.AttendanceServer.authenticateUser(AttendanceServer.java:104)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.rmi/sun.rmi.server.UnicastServerRef.dispatch(UnicastServerRef.java:360)
+	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:200)
+	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:197)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:714)
+	at java.rmi/sun.rmi.transport.Transport.serviceCall(Transport.java:196)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport.handleMessages(TCPTransport.java:598)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run0(TCPTransport.java:844)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.lambda$run$0(TCPTransport.java:721)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:400)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run(TCPTransport.java:720)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-05-07 02:07:01.854 [RMI TCP Connection(2)-127.0.0.1] ERROR c.a.system.server.AttendanceServer - Unexpected error in method authenticateUser
+java.lang.RuntimeException: Decryption failed
+	at com.attendance.system.util.SecurityUtil.decryptData(SecurityUtil.java:280)
+	at com.attendance.system.util.SecurityUtil.decryptData(SecurityUtil.java:235)
+	at com.attendance.system.util.SecurityUtil.decrypt(SecurityUtil.java:479)
+	at com.attendance.system.server.AttendanceServer.lambda$authenticateUser$0(AttendanceServer.java:111)
+	at com.attendance.system.server.AttendanceServer.executeWithErrorHandling(AttendanceServer.java:1139)
+	at com.attendance.system.server.AttendanceServer.authenticateUser(AttendanceServer.java:104)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.rmi/sun.rmi.server.UnicastServerRef.dispatch(UnicastServerRef.java:360)
+	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:200)
+	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:197)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:714)
+	at java.rmi/sun.rmi.transport.Transport.serviceCall(Transport.java:196)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport.handleMessages(TCPTransport.java:598)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run0(TCPTransport.java:844)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.lambda$run$0(TCPTransport.java:721)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:400)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run(TCPTransport.java:720)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+Caused by: java.lang.IllegalArgumentException: Last unit does not have enough valid bits
+	at java.base/java.util.Base64$Decoder.decode0(Base64.java:872)
+	at java.base/java.util.Base64$Decoder.decode(Base64.java:570)
+	at java.base/java.util.Base64$Decoder.decode(Base64.java:593)
+	at com.attendance.system.util.SecurityUtil.decryptData(SecurityUtil.java:252)
+	... 20 common frames omitted
+2026-05-07 02:07:01.957 [pool-1-thread-2] DEBUG c.a.system.server.ServerLauncher - Server stats - Active connections: 0, Total requests: 1
+2026-05-07 02:08:01.955 [pool-1-thread-2] DEBUG c.a.system.server.ServerLauncher - Server stats - Active connections: 0, Total requests: 1
+2026-05-07 02:09:01.955 [pool-1-thread-2] DEBUG c.a.system.server.ServerLauncher - Server stats - Active connections: 0, Total requests: 1
+2026-05-07 02:10:01.955 [pool-1-thread-2] DEBUG c.a.system.server.ServerLauncher - Server stats - Active connections: 0, Total requests: 1
+2026-05-07 02:11:01.955 [pool-1-thread-2] DEBUG c.a.system.server.ServerLauncher - Server stats - Active connections: 0, Total requests: 1
+2026-05-07 02:12:01.955 [pool-1-thread-2] DEBUG c.a.system.server.ServerLauncher - Server stats - Active connections: 0, Total requests: 1
+2026-05-07 02:13:01.955 [pool-1-thread-2] DEBUG c.a.system.server.ServerLauncher - Server stats - Active connections: 0, Total requests: 1
+2026-05-07 02:13:02.405 [Thread-1] INFO  c.a.system.server.ServerLauncher - Shutdown hook triggered
+2026-05-07 02:13:02.405 [Thread-1] INFO  c.a.system.server.ServerLauncher - Stopping Student Attendance System Server...
+2026-05-07 02:13:02.405 [Thread-1] INFO  c.a.system.server.ServerLauncher - Service unbound from registry
+2026-05-07 02:13:02.411 [Thread-1] INFO  c.a.system.server.ServerLauncher - Server unexported
+2026-05-07 02:13:02.411 [Thread-1] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-2 - Shutdown initiated...
+2026-05-07 02:13:02.449 [Thread-1] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-2 - Shutdown completed.
+2026-05-07 02:13:02.450 [Thread-1] INFO  c.a.system.dao.DatabaseManager - Database connection pool closed
+2026-05-07 02:13:02.450 [Thread-1] INFO  c.a.system.server.ServerLauncher - Database connections closed
+2026-05-07 02:13:02.452 [Thread-1] INFO  c.a.system.server.ServerLauncher - Server stopped successfully

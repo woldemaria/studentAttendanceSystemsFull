@@ -153,7 +153,7 @@ public class AttendanceServiceImpl {
     public List<AttendanceRecord> getFilteredAttendanceRecords(String sessionToken, int studentId, 
                                                               int courseId, LocalDate startDate, 
                                                               LocalDate endDate, AttendanceStatus status) 
-            throws AuthenticationException, DatabaseException {
+            throws AuthenticationException, ValidationException, DatabaseException {
         
         // Validate session
         User currentUser = authService.validateSession(sessionToken);

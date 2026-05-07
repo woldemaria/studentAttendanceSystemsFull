@@ -69,7 +69,8 @@ public class ReportServiceImpl implements ReportService {
             criteria.getStudentId() != null ? criteria.getStudentId() : -1,
             criteria.getCourseId() != null ? criteria.getCourseId() : -1,
             criteria.getStartDate(),
-            criteria.getEndDate()
+            criteria.getEndDate(),
+            null
         );
 
         // Filter by attendance status if specified
@@ -168,7 +169,8 @@ public class ReportServiceImpl implements ReportService {
                 student.getUserId(),
                 courseId,
                 startDate,
-                endDate
+                endDate,
+                null
             );
             records.addAll(studentRecords);
         }
@@ -202,7 +204,8 @@ public class ReportServiceImpl implements ReportService {
             studentId,
             -1,
             startDate,
-            endDate
+            endDate,
+            null
         );
 
         // Calculate statistics

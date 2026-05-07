@@ -14,6 +14,7 @@ public class Student extends User {
     private String studentNumber;
     private String program;
     private int yearLevel;
+    private String classSection; // Class/Section (e.g., "A", "B", "1", "2")
     private LocalDate enrollmentDate;
     private List<Course> enrolledCourses;
     
@@ -35,6 +36,7 @@ public class Student extends User {
         this.studentNumber = studentNumber;
         this.program = program;
         this.yearLevel = yearLevel;
+        this.classSection = "A"; // Default class section
         this.enrollmentDate = LocalDate.now();
         this.enrolledCourses = new ArrayList<>();
     }
@@ -76,6 +78,14 @@ public class Student extends User {
         } else {
             throw new IllegalArgumentException("Year level must be between 1 and 4");
         }
+    }
+    
+    public String getClassSection() {
+        return classSection;
+    }
+    
+    public void setClassSection(String classSection) {
+        this.classSection = classSection;
     }
     
     public LocalDate getEnrollmentDate() {
@@ -137,6 +147,14 @@ public class Student extends User {
      */
     public boolean isEligibleForExam(double attendancePercentage) {
         return attendancePercentage >= 75.0;
+    }
+    
+    /**
+     * Gets the full class designation (Year Level + Section).
+     * @return class designation like "1A", "2B", etc.
+     */
+    public String getFullClassDesignation() {
+        return yearLevel + (classSection != null ? classSection : "");
     }
     
     /**

@@ -48,7 +48,7 @@ public class DatabaseManager {
     /**
      * Initializes the HikariCP connection pool.
      */
-    private void initializeConnectionPool() {
+    public void initializeConnectionPool() {
         try {
             HikariConfig config = new HikariConfig();
             
@@ -191,8 +191,8 @@ public class DatabaseManager {
         stats.put("idleConnections", poolMXBean.getIdleConnections());
         stats.put("totalConnections", poolMXBean.getTotalConnections());
         stats.put("threadsAwaitingConnection", poolMXBean.getThreadsAwaitingConnection());
-        stats.put("maxPoolSize", poolMXBean.getMaximumPoolSize());
-        stats.put("minimumIdle", poolMXBean.getMinimumIdle());
+        stats.put("maxPoolSize", dataSource.getMaximumPoolSize());
+        stats.put("minimumIdle", dataSource.getMinimumIdle());
         stats.put("connectionTimeout", "30 seconds");
         stats.put("idleTimeout", "10 minutes");
         stats.put("maxLifetime", "30 minutes");
@@ -311,5 +311,30 @@ public class DatabaseManager {
      */
     public boolean isHealthy() {
         return dataSource != null && !dataSource.isClosed() && testConnection();
+    }
+
+    /**
+     * Main method for testing connection from command line.
+     * @param args command line arguments
+     */
+    public static void main(String[] args) {
+        if (args.length > 0 && "--test-connection".equals(args[0])) {
+            try {
+                DatabaseManager manager = DatabaseManager.getInstance();
+                if (manager.testConnection()) {
+                    System.out.println("Database connection successful.");
+                    System.exit(0);
+                } else {
+                    System.err.println("Database connection failed.");
+                    System.exit(1);
+                }
+            } catch (Exception e) {
+                System.err.println("Database initialization failed: " + e.getMessage());
+                System.exit(1);
+            }
+        } else {
+            System.out.println("Usage: java DatabaseManager --test-connection");
+            System.exit(1);
+        }
     }
 }

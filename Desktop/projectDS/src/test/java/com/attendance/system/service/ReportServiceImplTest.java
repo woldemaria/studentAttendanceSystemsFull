@@ -53,7 +53,7 @@ public class ReportServiceImplTest {
         
         ReportService.ReportCriteria criteria = new ReportService.ReportCriteria(startDate, endDate);
         
-        when(attendanceDAO.findWithFilters(-1, -1, startDate, endDate)).thenReturn(records);
+        when(attendanceDAO.findWithFilters(-1, -1, startDate, endDate, null)).thenReturn(records);
         
         // Act
         Map<String, Object> report = reportService.generateAttendanceReport(criteria);
@@ -82,7 +82,7 @@ public class ReportServiceImplTest {
         ReportService.ReportCriteria criteria = new ReportService.ReportCriteria(startDate, endDate);
         criteria.setStudentId(studentId);
         
-        when(attendanceDAO.findWithFilters(studentId, -1, startDate, endDate)).thenReturn(records);
+        when(attendanceDAO.findWithFilters(studentId, -1, startDate, endDate, null)).thenReturn(records);
         
         // Act
         Map<String, Object> report = reportService.generateAttendanceReport(criteria);
@@ -107,7 +107,7 @@ public class ReportServiceImplTest {
         ReportService.ReportCriteria criteria = new ReportService.ReportCriteria(startDate, endDate);
         criteria.setCourseId(courseId);
         
-        when(attendanceDAO.findWithFilters(-1, courseId, startDate, endDate)).thenReturn(records);
+        when(attendanceDAO.findWithFilters(-1, courseId, startDate, endDate, null)).thenReturn(records);
         
         // Act
         Map<String, Object> report = reportService.generateAttendanceReport(criteria);
@@ -131,7 +131,7 @@ public class ReportServiceImplTest {
         ReportService.ReportCriteria criteria = new ReportService.ReportCriteria(startDate, endDate);
         criteria.setAttendanceStatus("PRESENT");
         
-        when(attendanceDAO.findWithFilters(-1, -1, startDate, endDate)).thenReturn(allRecords);
+        when(attendanceDAO.findWithFilters(-1, -1, startDate, endDate, null)).thenReturn(allRecords);
         
         // Act
         Map<String, Object> report = reportService.generateAttendanceReport(criteria);
@@ -163,7 +163,7 @@ public class ReportServiceImplTest {
         
         ReportService.ReportCriteria criteria = new ReportService.ReportCriteria(startDate, endDate);
         
-        when(attendanceDAO.findWithFilters(-1, -1, startDate, endDate)).thenReturn(records);
+        when(attendanceDAO.findWithFilters(-1, -1, startDate, endDate, null)).thenReturn(records);
         
         // Act
         Map<String, Object> report = reportService.generateAttendanceReport(criteria);
@@ -229,7 +229,7 @@ public class ReportServiceImplTest {
         
         when(courseDAO.findById(courseId)).thenReturn(course);
         when(courseDAO.getEnrolledStudents(courseId)).thenReturn(students);
-        when(attendanceDAO.findWithFilters(anyInt(), eq(courseId), eq(startDate), eq(endDate)))
+        when(attendanceDAO.findWithFilters(anyInt(), eq(courseId), eq(startDate), eq(endDate), any()))
             .thenReturn(records);
         
         // Act
@@ -262,7 +262,7 @@ public class ReportServiceImplTest {
         List<AttendanceRecord> records = createSampleAttendanceRecords(15);
         
         when(userDAO.findById(studentId)).thenReturn(student);
-        when(attendanceDAO.findWithFilters(studentId, -1, startDate, endDate)).thenReturn(records);
+        when(attendanceDAO.findWithFilters(studentId, -1, startDate, endDate, null)).thenReturn(records);
         
         // Act
         Map<String, Object> report = reportService.generateStudentReport(studentId, startDate, endDate);
@@ -321,7 +321,7 @@ public class ReportServiceImplTest {
         
         ReportService.ReportCriteria criteria = new ReportService.ReportCriteria(startDate, endDate);
         
-        when(attendanceDAO.findWithFilters(-1, -1, startDate, endDate)).thenReturn(new ArrayList<>());
+        when(attendanceDAO.findWithFilters(-1, -1, startDate, endDate, null)).thenReturn(new ArrayList<>());
         
         // Act
         Map<String, Object> report = reportService.generateAttendanceReport(criteria);
@@ -347,7 +347,7 @@ public class ReportServiceImplTest {
         
         ReportService.ReportCriteria criteria = new ReportService.ReportCriteria(startDate, endDate);
         
-        when(attendanceDAO.findWithFilters(-1, -1, startDate, endDate)).thenReturn(new ArrayList<>());
+        when(attendanceDAO.findWithFilters(-1, -1, startDate, endDate, null)).thenReturn(new ArrayList<>());
         
         // Act
         Map<String, Object> report = reportService.generateAttendanceReport(criteria);
@@ -407,7 +407,7 @@ public class ReportServiceImplTest {
         criteria.setCourseId(courseId);
         criteria.setAttendanceStatus("PRESENT");
         
-        when(attendanceDAO.findWithFilters(studentId, courseId, startDate, endDate)).thenReturn(records);
+        when(attendanceDAO.findWithFilters(studentId, courseId, startDate, endDate, null)).thenReturn(records);
         
         // Act
         Map<String, Object> report = reportService.generateAttendanceReport(criteria);

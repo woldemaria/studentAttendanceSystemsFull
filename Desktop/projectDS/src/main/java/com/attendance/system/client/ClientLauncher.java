@@ -18,7 +18,7 @@ public class ClientLauncher {
         // Start the GUI application
         javax.swing.SwingUtilities.invokeLater(() -> {
             try {
-                String serverUrl = "rmi://localhost:1099/AttendanceService";
+                String serverUrl = "rmi://localhost:1100/AttendanceService";
                 if (args.length > 0) {
                     serverUrl = args[0];
                 }

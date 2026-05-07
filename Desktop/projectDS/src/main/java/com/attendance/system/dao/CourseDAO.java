@@ -122,7 +122,7 @@ public class CourseDAO {
      */
     public Course findById(int courseId) throws DatabaseException {
         String sql = """
-            SELECT c.*, u.first_name, u.last_name
+            SELECT c.*, u.first_name, u.last_name, u.user_id as teacher_user_id
             FROM COURSES c
             LEFT JOIN TEACHERS t ON c.teacher_id = t.teacher_id
             LEFT JOIN USERS u ON t.user_id = u.user_id
@@ -183,18 +183,18 @@ public class CourseDAO {
     }
     
     /**
-     * Finds courses by teacher ID.
-     * @param teacherId the teacher ID
+     * Finds courses by teacher user ID.
+     * @param teacherUserId the teacher's user ID
      * @return list of courses taught by the teacher
      * @throws DatabaseException if database error occurs
      */
-    public List<Course> findByTeacherId(int teacherId) throws DatabaseException {
+    public List<Course> findByTeacherId(int teacherUserId) throws DatabaseException {
         String sql = """
-            SELECT c.*, u.first_name, u.last_name
+            SELECT c.*, u.first_name, u.last_name, u.user_id as teacher_user_id
             FROM COURSES c
             LEFT JOIN TEACHERS t ON c.teacher_id = t.teacher_id
             LEFT JOIN USERS u ON t.user_id = u.user_id
-            WHERE c.teacher_id = ? AND c.is_active = TRUE
+            WHERE t.user_id = ? AND c.is_active = TRUE
             ORDER BY c.course_code
             """;
         
@@ -203,7 +203,7 @@ public class CourseDAO {
         try (Connection connection = databaseManager.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             
-            statement.setInt(1, teacherId);
+            statement.setInt(1, teacherUserId);
             
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
@@ -214,7 +214,7 @@ public class CourseDAO {
             return courses;
             
         } catch (SQLException e) {
-            logger.error("Failed to find courses by teacher ID: " + teacherId, e);
+            logger.error("Failed to find courses by teacher user ID: " + teacherUserId, e);
             throw DatabaseException.queryFailed(sql, e);
         }
     }
@@ -432,21 +432,22 @@ public class CourseDAO {
     
     /**
      * Checks if a student is enrolled in a course.
-     * @param studentId the student ID
+     * @param studentUserId the student's user ID
      * @param courseId the course ID
      * @return true if student is enrolled
      * @throws DatabaseException if database error occurs
      */
-    public boolean isStudentEnrolled(int studentId, int courseId) throws DatabaseException {
+    public boolean isStudentEnrolled(int studentUserId, int courseId) throws DatabaseException {
         String sql = """
-            SELECT COUNT(*) FROM ENROLLMENTS 
-            WHERE student_id = ? AND course_id = ? AND status = 'ENROLLED'
+            SELECT COUNT(*) FROM ENROLLMENTS e
+            JOIN STUDENTS s ON e.student_id = s.student_id
+            WHERE s.user_id = ? AND e.course_id = ? AND e.status = 'ENROLLED'
             """;
         
         try (Connection connection = databaseManager.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             
-            statement.setInt(1, studentId);
+            statement.setInt(1, studentUserId);
             statement.setInt(2, courseId);
             
             try (ResultSet resultSet = statement.executeQuery()) {
@@ -503,7 +504,28 @@ public class CourseDAO {
         course.setCourseName(rs.getString("course_name"));
         course.setDescription(rs.getString("description"));
         course.setCredits(rs.getInt("credits"));
-        course.setTeacherId(rs.getInt("teacher_id"));
+        
+        // Set teacherId to the user_id of the teacher for permission checks
+        try {
+            // Try to get teacher_user_id alias first
+            int teacherUserId = rs.getInt("teacher_user_id");
+            if (!rs.wasNull()) {
+                course.setTeacherId(teacherUserId);
+            } else {
+                // Fallback to user_id
+                teacherUserId = rs.getInt("user_id");
+                if (!rs.wasNull()) {
+                    course.setTeacherId(teacherUserId);
+                } else {
+                    // Final fallback to teacher_id
+                    course.setTeacherId(rs.getInt("teacher_id"));
+                }
+            }
+        } catch (SQLException e) {
+            // Fallback to teacher_id if other columns don't exist
+            course.setTeacherId(rs.getInt("teacher_id"));
+        }
+        
         course.setSemester(rs.getString("semester"));
         course.setAcademicYear(rs.getString("academic_year"));
         course.setActive(rs.getBoolean("is_active"));
@@ -547,7 +569,7 @@ public class CourseDAO {
         
         return student;
     }
-}
+
     /**
      * Tests database connection.
      * @return true if connection is successful
@@ -610,4 +632,4 @@ public class CourseDAO {
             logger.error("Failed to get active course count", e);
             throw new DatabaseException("Failed to get active course count", e);
         }
-    }
+    }}

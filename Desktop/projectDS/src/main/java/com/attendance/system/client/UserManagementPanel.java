@@ -92,7 +92,7 @@ public class UserManagementPanel extends JPanel {
      * Creates the user table.
      */
     private void createUserTable() {
-        String[] columnNames = {"ID", "Username", "Full Name", "Email", "Role", "Active", "Created"};
+        String[] columnNames = {"ID", "Username", "Full Name", "Email", "Role", "Year/Class", "Active", "Created"};
         userTableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -111,8 +111,9 @@ public class UserManagementPanel extends JPanel {
         userTable.getColumnModel().getColumn(2).setPreferredWidth(150);
         userTable.getColumnModel().getColumn(3).setPreferredWidth(200);
         userTable.getColumnModel().getColumn(4).setPreferredWidth(80);
-        userTable.getColumnModel().getColumn(5).setPreferredWidth(60);
-        userTable.getColumnModel().getColumn(6).setPreferredWidth(100);
+        userTable.getColumnModel().getColumn(5).setPreferredWidth(80);
+        userTable.getColumnModel().getColumn(6).setPreferredWidth(60);
+        userTable.getColumnModel().getColumn(7).setPreferredWidth(100);
         
         // Add row sorter
         sorter = new TableRowSorter<>(userTableModel);
@@ -274,12 +275,20 @@ public class UserManagementPanel extends JPanel {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         
         for (User user : users) {
+            // Get year/class info for students
+            String yearClass = "";
+            if (user instanceof Student) {
+                Student student = (Student) user;
+                yearClass = student.getFullClassDesignation(); // e.g., "1A", "2B"
+            }
+            
             Object[] row = {
                 user.getUserId(),
                 user.getUsername(),
                 user.getFullName(),
                 user.getEmail(),
                 user.getRole().getDisplayName(),
+                yearClass,
                 user.isActive() ? "Yes" : "No",
                 user.getCreatedAt() != null ? user.getCreatedAt().format(formatter) : ""
             };
@@ -423,7 +432,27 @@ public class UserManagementPanel extends JPanel {
                 SwingUtilities.invokeLater(() -> {
                     parentFrame.showProgress(false);
                     logger.error("Failed to delete user", throwable);
-                    parentFrame.showErrorDialog("Error", "Failed to delete user: " + throwable.getMessage());
+                    
+                    String errorMessage = "Failed to delete user";
+                    
+                    // Extract meaningful error message
+                    Throwable cause = throwable.getCause();
+                    if (cause != null) {
+                        String causeMessage = cause.getMessage();
+                        if (causeMessage.contains("Teacher has courses assigned")) {
+                            errorMessage = "Cannot delete teacher: Teacher has courses assigned.\nPlease reassign or delete courses first.";
+                        } else if (causeMessage.contains("has related records")) {
+                            errorMessage = "Cannot delete user: User has related records.\nPlease remove related data first.";
+                        } else if (causeMessage.contains("Database operation failed")) {
+                            errorMessage = "Database error: " + causeMessage;
+                        } else if (causeMessage.contains("foreign key constraint")) {
+                            errorMessage = "Cannot delete user: User has dependent records.";
+                        } else {
+                            errorMessage = "Failed to delete user: " + causeMessage;
+                        }
+                    }
+                    
+                    parentFrame.showErrorDialog("Delete User Failed", errorMessage);
                 });
                 return null;
             });

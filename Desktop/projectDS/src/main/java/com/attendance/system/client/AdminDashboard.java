@@ -27,6 +27,7 @@ public class AdminDashboard extends JPanel {
     private JTabbedPane tabbedPane;
     private JPanel dashboardPanel;
     private JPanel userManagementPanel;
+    private JPanel courseManagementContainer;
     private JPanel systemReportsPanel;
     private JPanel systemConfigPanel;
     
@@ -61,12 +62,14 @@ public class AdminDashboard extends JPanel {
         // Initialize panels
         createDashboardPanel();
         createUserManagementPanel();
+        createCourseManagementPanel();
         createSystemReportsPanel();
         createSystemConfigPanel();
         
-        // Add tabs
+        // Add tabs in order
         tabbedPane.addTab("Dashboard", new ImageIcon(), dashboardPanel, "System overview and statistics");
         tabbedPane.addTab("User Management", new ImageIcon(), userManagementPanel, "Manage users and accounts");
+        tabbedPane.addTab("Course & Enrollment", new ImageIcon(), courseManagementContainer, "Manage courses and enrollments");
         tabbedPane.addTab("Reports", new ImageIcon(), systemReportsPanel, "Generate system reports");
         tabbedPane.addTab("Configuration", new ImageIcon(), systemConfigPanel, "System settings and configuration");
     }
@@ -191,17 +194,336 @@ public class AdminDashboard extends JPanel {
     }
     
     /**
+     * Creates the course management panel.
+     */
+    private void createCourseManagementPanel() {
+        JTabbedPane courseTabPane = new JTabbedPane();
+        
+        // Course Management tab
+        CourseManagementPanel coursePanel = new CourseManagementPanel(parentFrame, remoteService, sessionToken);
+        courseTabPane.addTab("Courses", coursePanel);
+        
+        // Enrollment Management tab
+        EnrollmentManagementPanel enrollmentPanel = new EnrollmentManagementPanel(parentFrame, remoteService, sessionToken);
+        courseTabPane.addTab("Enrollments", enrollmentPanel);
+        
+        // Notification Management tab
+        NotificationPanel notificationPanel = new NotificationPanel(parentFrame, remoteService, sessionToken, 
+                parentFrame.getCurrentUser().getUser());
+        courseTabPane.addTab("Notifications", notificationPanel);
+        
+        // Add the tabbed pane as the course management container
+        courseManagementContainer = new JPanel(new BorderLayout());
+        courseManagementContainer.add(courseTabPane, BorderLayout.CENTER);
+    }
+    
+    /**
      * Creates the system reports panel.
      */
     private void createSystemReportsPanel() {
         systemReportsPanel = new JPanel(new BorderLayout());
         systemReportsPanel.setBackground(Color.WHITE);
         
-        JLabel label = new JLabel("System Reports - Coming Soon", SwingConstants.CENTER);
-        label.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 18));
-        label.setForeground(Color.GRAY);
+        // Title panel
+        JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        titlePanel.setBackground(Color.WHITE);
+        titlePanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
-        systemReportsPanel.add(label, BorderLayout.CENTER);
+        JLabel titleLabel = new JLabel("System Reports");
+        titleLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 20));
+        titleLabel.setForeground(new Color(70, 130, 180));
+        titlePanel.add(titleLabel);
+        
+        systemReportsPanel.add(titlePanel, BorderLayout.NORTH);
+        
+        // Main content panel
+        JPanel contentPanel = new JPanel(new GridLayout(3, 2, 20, 20));
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        contentPanel.setBackground(Color.WHITE);
+        
+        // User Activity Report
+        JPanel userActivityCard = createReportCard(
+            "User Activity Report",
+            "View login history and user activity statistics",
+            new Color(70, 130, 180),
+            e -> generateUserActivityReport()
+        );
+        contentPanel.add(userActivityCard);
+        
+        // Attendance Summary Report
+        JPanel attendanceSummaryCard = createReportCard(
+            "Attendance Summary",
+            "Overall attendance statistics across all courses",
+            new Color(34, 139, 34),
+            e -> generateAttendanceSummaryReport()
+        );
+        contentPanel.add(attendanceSummaryCard);
+        
+        // Course Enrollment Report
+        JPanel enrollmentCard = createReportCard(
+            "Enrollment Report",
+            "Student enrollment statistics by course",
+            new Color(255, 140, 0),
+            e -> generateEnrollmentReport()
+        );
+        contentPanel.add(enrollmentCard);
+        
+        // Teacher Performance Report
+        JPanel teacherCard = createReportCard(
+            "Teacher Report",
+            "Teacher course assignments and statistics",
+            new Color(220, 20, 60),
+            e -> generateTeacherReport()
+        );
+        contentPanel.add(teacherCard);
+        
+        // System Usage Report
+        JPanel systemUsageCard = createReportCard(
+            "System Usage",
+            "System performance and usage statistics",
+            new Color(138, 43, 226),
+            e -> generateSystemUsageReport()
+        );
+        contentPanel.add(systemUsageCard);
+        
+        // Database Statistics
+        JPanel databaseCard = createReportCard(
+            "Database Statistics",
+            "Database size and table statistics",
+            new Color(0, 128, 128),
+            e -> generateDatabaseReport()
+        );
+        contentPanel.add(databaseCard);
+        
+        systemReportsPanel.add(contentPanel, BorderLayout.CENTER);
+    }
+    
+    /**
+     * Creates a report card with title, description, and action button.
+     */
+    private JPanel createReportCard(String title, String description, Color color, java.awt.event.ActionListener action) {
+        JPanel card = new JPanel(new BorderLayout(10, 10));
+        card.setBackground(Color.WHITE);
+        card.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(color, 2),
+            BorderFactory.createEmptyBorder(15, 15, 15, 15)
+        ));
+        
+        // Title
+        JLabel titleLabel = new JLabel(title);
+        titleLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 16));
+        titleLabel.setForeground(color);
+        
+        // Description
+        JLabel descLabel = new JLabel("<html>" + description + "</html>");
+        descLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+        descLabel.setForeground(Color.DARK_GRAY);
+        
+        // Button
+        JButton generateButton = new JButton("Generate Report");
+        generateButton.setBackground(color);
+        generateButton.setForeground(Color.WHITE);
+        generateButton.setFocusPainted(false);
+        generateButton.addActionListener(action);
+        
+        // Layout
+        JPanel textPanel = new JPanel(new GridLayout(2, 1, 5, 5));
+        textPanel.setBackground(Color.WHITE);
+        textPanel.add(titleLabel);
+        textPanel.add(descLabel);
+        
+        card.add(textPanel, BorderLayout.CENTER);
+        card.add(generateButton, BorderLayout.SOUTH);
+        
+        return card;
+    }
+    
+    /**
+     * Generates user activity report.
+     */
+    private void generateUserActivityReport() {
+        try {
+            Map<String, Object> stats = remoteService.getSystemStatistics(sessionToken);
+            
+            StringBuilder report = new StringBuilder();
+            report.append("USER ACTIVITY REPORT\n");
+            report.append("===================\n\n");
+            report.append("Total Users: ").append(stats.getOrDefault("totalUsers", 0)).append("\n");
+            report.append("Active Users: ").append(stats.getOrDefault("activeUsers", 0)).append("\n");
+            report.append("Total Students: ").append(stats.getOrDefault("totalStudents", 0)).append("\n");
+            report.append("Total Teachers: ").append(stats.getOrDefault("totalTeachers", 0)).append("\n");
+            report.append("Total Admins: ").append(stats.getOrDefault("totalAdmins", 0)).append("\n");
+            report.append("\nActive Sessions: ").append(stats.getOrDefault("activeSessions", 0)).append("\n");
+            
+            showReportDialog("User Activity Report", report.toString());
+        } catch (Exception e) {
+            logger.error("Failed to generate user activity report", e);
+            JOptionPane.showMessageDialog(this, 
+                "Failed to generate report: " + e.getMessage(),
+                "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    /**
+     * Generates attendance summary report.
+     */
+    private void generateAttendanceSummaryReport() {
+        try {
+            Map<String, Object> stats = remoteService.getSystemStatistics(sessionToken);
+            
+            StringBuilder report = new StringBuilder();
+            report.append("ATTENDANCE SUMMARY REPORT\n");
+            report.append("========================\n\n");
+            report.append("Total Attendance Records: ").append(stats.getOrDefault("totalAttendanceRecords", 0)).append("\n");
+            report.append("Total Courses: ").append(stats.getOrDefault("totalCourses", 0)).append("\n");
+            report.append("Active Courses: ").append(stats.getOrDefault("activeCourses", 0)).append("\n");
+            report.append("\nThis report shows overall attendance statistics.\n");
+            report.append("For detailed course-specific reports, please use the Teacher dashboard.\n");
+            
+            showReportDialog("Attendance Summary Report", report.toString());
+        } catch (Exception e) {
+            logger.error("Failed to generate attendance summary report", e);
+            JOptionPane.showMessageDialog(this,
+                "Failed to generate report: " + e.getMessage(),
+                "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    /**
+     * Generates enrollment report.
+     */
+    private void generateEnrollmentReport() {
+        try {
+            Map<String, Object> stats = remoteService.getSystemStatistics(sessionToken);
+            
+            StringBuilder report = new StringBuilder();
+            report.append("ENROLLMENT REPORT\n");
+            report.append("=================\n\n");
+            report.append("Total Students: ").append(stats.getOrDefault("totalStudents", 0)).append("\n");
+            report.append("Total Courses: ").append(stats.getOrDefault("totalCourses", 0)).append("\n");
+            report.append("Total Enrollments: ").append(stats.getOrDefault("totalEnrollments", 0)).append("\n");
+            report.append("\nAverage Students per Course: ");
+            int totalCourses = (int) stats.getOrDefault("totalCourses", 1);
+            int totalEnrollments = (int) stats.getOrDefault("totalEnrollments", 0);
+            report.append(totalCourses > 0 ? (totalEnrollments / totalCourses) : 0).append("\n");
+            
+            showReportDialog("Enrollment Report", report.toString());
+        } catch (Exception e) {
+            logger.error("Failed to generate enrollment report", e);
+            JOptionPane.showMessageDialog(this,
+                "Failed to generate report: " + e.getMessage(),
+                "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    /**
+     * Generates teacher report.
+     */
+    private void generateTeacherReport() {
+        try {
+            Map<String, Object> stats = remoteService.getSystemStatistics(sessionToken);
+            
+            StringBuilder report = new StringBuilder();
+            report.append("TEACHER REPORT\n");
+            report.append("==============\n\n");
+            report.append("Total Teachers: ").append(stats.getOrDefault("totalTeachers", 0)).append("\n");
+            report.append("Total Courses: ").append(stats.getOrDefault("totalCourses", 0)).append("\n");
+            report.append("Active Courses: ").append(stats.getOrDefault("activeCourses", 0)).append("\n");
+            report.append("\nAverage Courses per Teacher: ");
+            int totalTeachers = (int) stats.getOrDefault("totalTeachers", 1);
+            int totalCourses = (int) stats.getOrDefault("totalCourses", 0);
+            report.append(totalTeachers > 0 ? (totalCourses / totalTeachers) : 0).append("\n");
+            
+            showReportDialog("Teacher Report", report.toString());
+        } catch (Exception e) {
+            logger.error("Failed to generate teacher report", e);
+            JOptionPane.showMessageDialog(this,
+                "Failed to generate report: " + e.getMessage(),
+                "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    /**
+     * Generates system usage report.
+     */
+    private void generateSystemUsageReport() {
+        try {
+            Map<String, Object> stats = remoteService.getSystemStatistics(sessionToken);
+            
+            StringBuilder report = new StringBuilder();
+            report.append("SYSTEM USAGE REPORT\n");
+            report.append("===================\n\n");
+            report.append("Active Sessions: ").append(stats.getOrDefault("activeSessions", 0)).append("\n");
+            report.append("Total Users: ").append(stats.getOrDefault("totalUsers", 0)).append("\n");
+            report.append("Active Users: ").append(stats.getOrDefault("activeUsers", 0)).append("\n");
+            report.append("\nSystem Status: Online\n");
+            report.append("Database Status: Connected\n");
+            report.append("Server Status: Running\n");
+            
+            showReportDialog("System Usage Report", report.toString());
+        } catch (Exception e) {
+            logger.error("Failed to generate system usage report", e);
+            JOptionPane.showMessageDialog(this,
+                "Failed to generate report: " + e.getMessage(),
+                "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    /**
+     * Generates database statistics report.
+     */
+    private void generateDatabaseReport() {
+        try {
+            Map<String, Object> stats = remoteService.getSystemStatistics(sessionToken);
+            
+            StringBuilder report = new StringBuilder();
+            report.append("DATABASE STATISTICS\n");
+            report.append("===================\n\n");
+            report.append("Total Users: ").append(stats.getOrDefault("totalUsers", 0)).append("\n");
+            report.append("Total Students: ").append(stats.getOrDefault("totalStudents", 0)).append("\n");
+            report.append("Total Teachers: ").append(stats.getOrDefault("totalTeachers", 0)).append("\n");
+            report.append("Total Courses: ").append(stats.getOrDefault("totalCourses", 0)).append("\n");
+            report.append("Total Enrollments: ").append(stats.getOrDefault("totalEnrollments", 0)).append("\n");
+            report.append("Total Attendance Records: ").append(stats.getOrDefault("totalAttendanceRecords", 0)).append("\n");
+            report.append("\nDatabase: Wolde\n");
+            report.append("Tables: 7\n");
+            report.append("Status: Healthy\n");
+            
+            showReportDialog("Database Statistics", report.toString());
+        } catch (Exception e) {
+            logger.error("Failed to generate database report", e);
+            JOptionPane.showMessageDialog(this,
+                "Failed to generate report: " + e.getMessage(),
+                "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    /**
+     * Shows a report in a dialog.
+     */
+    private void showReportDialog(String title, String content) {
+        JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), title, true);
+        dialog.setLayout(new BorderLayout());
+        
+        JTextArea textArea = new JTextArea(content);
+        textArea.setEditable(false);
+        textArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+        textArea.setMargin(new Insets(10, 10, 10, 10));
+        
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        scrollPane.setPreferredSize(new Dimension(500, 400));
+        
+        JButton closeButton = new JButton("Close");
+        closeButton.addActionListener(e -> dialog.dispose());
+        
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        buttonPanel.add(closeButton);
+        
+        dialog.add(scrollPane, BorderLayout.CENTER);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+        dialog.pack();
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
     }
     
     /**

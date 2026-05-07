@@ -127,12 +127,21 @@ public class AttendanceGUI extends JFrame {
         add(statusBar, BorderLayout.SOUTH);
     }
     
-    /**
-     * Applies the system look and feel.
-     */
     private void applyLookAndFeel() {
         try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeel());
+            // Force a cross-platform Light Look And Feel (Nimbus) instead of System 
+            // to avoid dark-mode clashing with white backgrounds.
+            boolean nimbusSet = false;
+            for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    UIManager.setLookAndFeel(info.getClassName());
+                    nimbusSet = true;
+                    break;
+                }
+            }
+            if (!nimbusSet) {
+                UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+            }
             SwingUtilities.updateComponentTreeUI(this);
         } catch (Exception e) {
             logger.warn("Could not set system look and feel", e);
@@ -489,6 +498,32 @@ public class AttendanceGUI extends JFrame {
     
     public boolean isConnected() {
         return isConnected;
+    }
+    
+    /**
+     * Shows the login frame.
+     */
+    public void showLoginFrame() {
+        showLoginScreen();
+    }
+    
+    /**
+     * Gets the attendance service.
+     */
+    public AttendanceService getAttendanceService() {
+        return remoteService;
+    }
+    
+    /**
+     * Shows a warning dialog.
+     */
+    public void showWarningDialog(String title, String message) {
+        JOptionPane.showMessageDialog(
+                this,
+                message,
+                title,
+                JOptionPane.WARNING_MESSAGE
+        );
     }
     
     /**
