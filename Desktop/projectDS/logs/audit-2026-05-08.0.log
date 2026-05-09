@@ -1,0 +1,2 @@
+2026-05-08 00:21:50.121 [AUDIT] Audit Trail - User: admin123, Action: CREATE_USER, Resource: User/user456, Result: SUCCESS, Details: Created new teacher account
+2026-05-08 00:21:50.148 [AUDIT] Audit Trail - User: admin123, Action: CREATE_USER, Resource: User/user456, Result: SUCCESS

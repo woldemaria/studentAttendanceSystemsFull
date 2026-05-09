@@ -13,6 +13,7 @@ public class Student extends User {
     
     private String studentNumber;
     private String program;
+    private String department; // Student's department (e.g., "Computer Science", "Engineering")
     private int yearLevel;
     private String classSection; // Class/Section (e.g., "A", "B", "1", "2")
     private LocalDate enrollmentDate;
@@ -66,6 +67,14 @@ public class Student extends User {
     
     public void setProgram(String program) {
         this.program = program;
+    }
+    
+    public String getDepartment() {
+        return department;
+    }
+    
+    public void setDepartment(String department) {
+        this.department = department;
     }
     
     public int getYearLevel() {

@@ -58,14 +58,8 @@ public class RegistrationIntegrationTest {
         when(mockUserDAO.createUser(any(User.class))).thenReturn(true);
         
         // Execute
-        boolean result = server.registerUser(
-            "john.doe",
-            "john.doe@example.com",
-            "John",
-            "Doe",
-            "SecurePass123!",
-            UserRole.STUDENT, "A"
-        );
+        boolean result = server.registerUser("john.doe", "john.doe@example.com", "John", "Doe", "SecurePass123!", UserRole.STUDENT, "A"
+        , null, null, null, null);
         
         // Verify
         assertTrue(result);
@@ -83,14 +77,8 @@ public class RegistrationIntegrationTest {
         when(mockUserDAO.createUser(any(User.class))).thenReturn(true);
         
         // Execute
-        boolean result = server.registerUser(
-            "jane.smith",
-            "jane.smith@example.com",
-            "Jane",
-            "Smith",
-            "TeacherPass123!",
-            UserRole.TEACHER, null
-        );
+        boolean result = server.registerUser("jane.smith", "jane.smith@example.com", "Jane", "Smith", "TeacherPass123!", UserRole.TEACHER, null
+        , null, null, null, "Computer Science");
         
         // Verify
         assertTrue(result);
@@ -109,14 +97,8 @@ public class RegistrationIntegrationTest {
         
         // Execute & Verify - should fail due to duplicate username
         assertThrows(ValidationException.class, () -> {
-            server.registerUser(
-                "existing.user",
-                "new@example.com",
-                "New",
-                "User",
-                "ValidPass123!",
-                UserRole.STUDENT, "A"
-            );
+            server.registerUser("existing.user", "new@example.com", "New", "User", "ValidPass123!", UserRole.STUDENT, "A"
+            , null, null, null, null);
         });
         
         // Verify that email check was not performed (failed at username check)
@@ -136,14 +118,8 @@ public class RegistrationIntegrationTest {
         
         // Execute & Verify
         assertThrows(DatabaseException.class, () -> {
-            server.registerUser(
-                "newuser",
-                "new@example.com",
-                "New",
-                "User",
-                "ValidPass123!",
-                UserRole.STUDENT, "A"
-            );
+            server.registerUser("newuser", "new@example.com", "New", "User", "ValidPass123!", UserRole.STUDENT, "A"
+            , null, null, null, null);
         });
     }
     
@@ -158,14 +134,8 @@ public class RegistrationIntegrationTest {
         when(mockUserDAO.createUser(any(User.class))).thenReturn(true);
         
         // Execute
-        server.registerUser(
-            "testuser",
-            "test@example.com",
-            "Test",
-            "User",
-            "TestPass123!",
-            UserRole.STUDENT, "A"
-        );
+        server.registerUser("testuser", "test@example.com", "Test", "User", "TestPass123!", UserRole.STUDENT, "A"
+        , null, null, null, null);
         
         // Verify user data
         verify(mockUserDAO).createUser(argThat(user -> {
@@ -189,14 +159,8 @@ public class RegistrationIntegrationTest {
         String plainPassword = "TestPass123!";
         
         // Execute
-        server.registerUser(
-            "testuser",
-            "test@example.com",
-            "Test",
-            "User",
-            plainPassword,
-            UserRole.STUDENT, "A"
-        );
+        server.registerUser("testuser", "test@example.com", "Test", "User", plainPassword, UserRole.STUDENT, "A"
+        , null, null, null, null);
         
         // Verify password is hashed
         verify(mockUserDAO).createUser(argThat(user -> {
@@ -222,7 +186,7 @@ public class RegistrationIntegrationTest {
         // Execute concurrent registrations
         Thread thread1 = new Thread(() -> {
             try {
-                server.registerUser("concurrent", "user1@example.com", "User", "One", "Pass123!", UserRole.STUDENT, "A");
+                server.registerUser("concurrent", "user1@example.com", "User", "One", "Pass123!", UserRole.STUDENT, "A", null, null, null, null);
             } catch (Exception e) {
                 // Expected to fail
             }
@@ -230,7 +194,7 @@ public class RegistrationIntegrationTest {
         
         Thread thread2 = new Thread(() -> {
             try {
-                server.registerUser("concurrent", "user2@example.com", "User", "Two", "Pass123!", UserRole.STUDENT, "A");
+                server.registerUser("concurrent", "user2@example.com", "User", "Two", "Pass123!", UserRole.STUDENT, "A", null, null, null, null);
             } catch (Exception e) {
                 // Expected to fail
             }
@@ -256,14 +220,8 @@ public class RegistrationIntegrationTest {
         when(mockUserDAO.createUser(any(User.class))).thenReturn(true);
         
         // Execute
-        boolean result = server.registerUser(
-            "testuser",
-            "test@example.com",
-            "Jean-Pierre",
-            "O'Brien",
-            "TestPass123!",
-            UserRole.STUDENT, "A"
-        );
+        boolean result = server.registerUser("testuser", "test@example.com", "Jean-Pierre", "O'Brien", "TestPass123!", UserRole.STUDENT, "A"
+        , null, null, null, null);
         
         // Verify
         assertTrue(result);
@@ -286,14 +244,8 @@ public class RegistrationIntegrationTest {
         when(mockUserDAO.createUser(any(User.class))).thenReturn(true);
         
         // Execute
-        boolean result = server.registerUser(
-            maxUsername,
-            "test@example.com",
-            maxFirstName,
-            maxLastName,
-            "TestPass123!",
-            UserRole.STUDENT, "A"
-        );
+        boolean result = server.registerUser(maxUsername, "test@example.com", maxFirstName, maxLastName, "TestPass123!", UserRole.STUDENT, "A"
+        , null, null, null, null);
         
         // Verify
         assertTrue(result);
@@ -309,14 +261,8 @@ public class RegistrationIntegrationTest {
         when(mockUserDAO.createUser(any(User.class))).thenReturn(true);
         
         // Execute
-        boolean result = server.registerUser(
-            "abc",
-            "a@b.c",
-            "A",
-            "B",
-            "TestPass123!",
-            UserRole.STUDENT, "A"
-        );
+        boolean result = server.registerUser("abc", "a@b.c", "A", "B", "TestPass123!", UserRole.STUDENT, "A"
+        , null, null, null, null);
         
         // Verify
         assertTrue(result);

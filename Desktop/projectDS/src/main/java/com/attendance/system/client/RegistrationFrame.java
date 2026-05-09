@@ -33,6 +33,12 @@ public class RegistrationFrame extends JPanel {
     private JTextField emailField;
     private JTextField firstNameField;
     private JTextField lastNameField;
+    private JTextField phoneNumberField;
+    private JComboBox<String> genderComboBox;
+    private JTextField departmentField; // For teachers only
+    private JButton uploadPhotoButton;
+    private JLabel photoPreviewLabel;
+    private String selectedPhotoPath;
     private JPasswordField passwordField;
     private JPasswordField confirmPasswordField;
     private JComboBox<UserRole> roleComboBox;
@@ -50,6 +56,8 @@ public class RegistrationFrame extends JPanel {
     private JLabel confirmPasswordErrorLabel;
     private JLabel firstNameErrorLabel;
     private JLabel lastNameErrorLabel;
+    private JLabel phoneNumberErrorLabel;
+    private JLabel departmentErrorLabel;
     
     public RegistrationFrame(AttendanceGUI parentFrame, Runnable onRegistrationSuccess) {
         this.parentFrame = parentFrame;
@@ -82,6 +90,29 @@ public class RegistrationFrame extends JPanel {
         lastNameField = new JTextField(20);
         lastNameField.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 14));
         lastNameField.setBorder(createFieldBorder());
+        
+        phoneNumberField = new JTextField(20);
+        phoneNumberField.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 14));
+        phoneNumberField.setBorder(createFieldBorder());
+        
+        genderComboBox = new JComboBox<>(new String[]{"Male", "Female", "Other"});
+        genderComboBox.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 14));
+        genderComboBox.setSelectedItem("Male");
+        
+        departmentField = new JTextField(20);
+        departmentField.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 14));
+        departmentField.setBorder(createFieldBorder());
+        departmentField.setVisible(true); // Show by default for both students and teachers
+        
+        uploadPhotoButton = new JButton("Choose Photo");
+        uploadPhotoButton.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+        uploadPhotoButton.setPreferredSize(new Dimension(120, 30));
+        
+        photoPreviewLabel = new JLabel("No photo selected");
+        photoPreviewLabel.setFont(new Font(Font.SANS_SERIF, Font.ITALIC, 11));
+        photoPreviewLabel.setForeground(Color.GRAY);
+        
+        selectedPhotoPath = null;
         
         passwordField = new JPasswordField(20);
         passwordField.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 14));
@@ -158,6 +189,14 @@ public class RegistrationFrame extends JPanel {
         confirmPasswordErrorLabel = new JLabel(" ");
         confirmPasswordErrorLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
         confirmPasswordErrorLabel.setForeground(Color.RED);
+        
+        phoneNumberErrorLabel = new JLabel(" ");
+        phoneNumberErrorLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
+        phoneNumberErrorLabel.setForeground(Color.RED);
+        
+        departmentErrorLabel = new JLabel(" ");
+        departmentErrorLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
+        departmentErrorLabel.setForeground(Color.RED);
     }
     
     /**
@@ -278,35 +317,102 @@ public class RegistrationFrame extends JPanel {
         gbc.insets = new Insets(0, 10, 5, 10);
         mainContainer.add(emailErrorLabel, gbc);
         
+        // Phone Number
+        gbc.insets = new Insets(5, 10, 5, 10);
+        JLabel phoneNumberLabel = new JLabel("Phone Number:");
+        phoneNumberLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
+        gbc.gridx = 0;
+        gbc.gridy = 10;
+        gbc.fill = GridBagConstraints.NONE;
+        mainContainer.add(phoneNumberLabel, gbc);
+        
+        gbc.gridx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        mainContainer.add(phoneNumberField, gbc);
+        
+        // Phone Number error label
+        gbc.gridx = 1;
+        gbc.gridy = 11;
+        gbc.insets = new Insets(0, 10, 5, 10);
+        mainContainer.add(phoneNumberErrorLabel, gbc);
+        
+        // Gender
+        gbc.insets = new Insets(5, 10, 5, 10);
+        JLabel genderLabel = new JLabel("Gender:");
+        genderLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
+        gbc.gridx = 0;
+        gbc.gridy = 12;
+        gbc.fill = GridBagConstraints.NONE;
+        mainContainer.add(genderLabel, gbc);
+        
+        gbc.gridx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        mainContainer.add(genderComboBox, gbc);
+        
         // Role selection
         gbc.insets = new Insets(5, 10, 5, 10);
         JLabel roleLabel = new JLabel("Account Type:");
         roleLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
         gbc.gridx = 0;
-        gbc.gridy = 10;
+        gbc.gridy = 13;
         gbc.fill = GridBagConstraints.NONE;
         mainContainer.add(roleLabel, gbc);
         gbc.gridx = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         mainContainer.add(roleComboBox, gbc);
         
+        // Department (for teachers only)
+        JLabel departmentLabel = new JLabel("Department:");
+        departmentLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
+        gbc.gridx = 0;
+        gbc.gridy = 14;
+        gbc.fill = GridBagConstraints.NONE;
+        mainContainer.add(departmentLabel, gbc);
+        gbc.gridx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        mainContainer.add(departmentField, gbc);
+        
+        // Department error label
+        gbc.gridx = 1;
+        gbc.gridy = 15;
+        gbc.insets = new Insets(0, 10, 5, 10);
+        mainContainer.add(departmentErrorLabel, gbc);
+        
         // Class Section (for students only)
+        gbc.insets = new Insets(5, 10, 5, 10);
         JLabel classSectionLabel = new JLabel("Class Section:");
         classSectionLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
         gbc.gridx = 0;
-        gbc.gridy = 11;
+        gbc.gridy = 16;
         gbc.fill = GridBagConstraints.NONE;
         mainContainer.add(classSectionLabel, gbc);
         gbc.gridx = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         mainContainer.add(classSectionComboBox, gbc);
         
+        // Profile Photo
+        gbc.insets = new Insets(5, 10, 5, 10);
+        JLabel photoLabel = new JLabel("Profile Photo:");
+        photoLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
+        gbc.gridx = 0;
+        gbc.gridy = 17;
+        gbc.fill = GridBagConstraints.NONE;
+        mainContainer.add(photoLabel, gbc);
+        
+        JPanel photoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        photoPanel.setBackground(Color.WHITE);
+        photoPanel.add(uploadPhotoButton);
+        photoPanel.add(photoPreviewLabel);
+        gbc.gridx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        mainContainer.add(photoPanel, gbc);
+        
         // Password
         gbc.insets = new Insets(5, 10, 5, 10);
         JLabel passwordLabel = new JLabel("Password:");
         passwordLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
         gbc.gridx = 0;
-        gbc.gridy = 12;
+        gbc.gridy = 18;
         gbc.fill = GridBagConstraints.NONE;
         mainContainer.add(passwordLabel, gbc);
         
@@ -316,7 +422,7 @@ public class RegistrationFrame extends JPanel {
         
         // Password error label
         gbc.gridx = 1;
-        gbc.gridy = 13;
+        gbc.gridy = 19;
         gbc.insets = new Insets(0, 10, 5, 10);
         mainContainer.add(passwordErrorLabel, gbc);
         
@@ -325,7 +431,7 @@ public class RegistrationFrame extends JPanel {
         JLabel confirmPasswordLabel = new JLabel("Confirm Password:");
         confirmPasswordLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
         gbc.gridx = 0;
-        gbc.gridy = 14;
+        gbc.gridy = 20;
         gbc.fill = GridBagConstraints.NONE;
         mainContainer.add(confirmPasswordLabel, gbc);
         
@@ -335,13 +441,13 @@ public class RegistrationFrame extends JPanel {
         
         // Confirm Password error label
         gbc.gridx = 1;
-        gbc.gridy = 15;
+        gbc.gridy = 21;
         gbc.insets = new Insets(0, 10, 5, 10);
         mainContainer.add(confirmPasswordErrorLabel, gbc);
         
         // Show password checkbox
         gbc.insets = new Insets(5, 10, 15, 10);
-        gbc.gridy = 16;
+        gbc.gridy = 22;
         mainContainer.add(showPasswordCheckBox, gbc);
         
         // Button panel
@@ -351,19 +457,19 @@ public class RegistrationFrame extends JPanel {
         buttonPanel.add(cancelButton);
         
         gbc.gridx = 0;
-        gbc.gridy = 17;
+        gbc.gridy = 23;
         gbc.gridwidth = 2;
         gbc.fill = GridBagConstraints.NONE;
         gbc.anchor = GridBagConstraints.CENTER;
         mainContainer.add(buttonPanel, gbc);
         
         // Status label
-        gbc.gridy = 18;
+        gbc.gridy = 24;
         gbc.insets = new Insets(15, 10, 5, 10);
         mainContainer.add(statusLabel, gbc);
         
         // Progress bar
-        gbc.gridy = 19;
+        gbc.gridy = 25;
         gbc.insets = new Insets(5, 10, 10, 10);
         mainContainer.add(progressBar, gbc);
         
@@ -390,9 +496,53 @@ public class RegistrationFrame extends JPanel {
         roleComboBox.addActionListener(e -> {
             UserRole selectedRole = (UserRole) roleComboBox.getSelectedItem();
             boolean isStudent = selectedRole == UserRole.STUDENT;
+            
+            // Show class section only for students
             classSectionComboBox.setVisible(isStudent);
+            
+            // Show department for BOTH students and teachers
+            departmentField.setVisible(true);
+            
             classSectionComboBox.getParent().revalidate();
             classSectionComboBox.getParent().repaint();
+        });
+        
+        // Photo upload button
+        uploadPhotoButton.addActionListener(e -> {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setDialogTitle("Select Profile Photo");
+            fileChooser.setFileFilter(new javax.swing.filechooser.FileFilter() {
+                @Override
+                public boolean accept(java.io.File f) {
+                    if (f.isDirectory()) return true;
+                    String name = f.getName().toLowerCase();
+                    return name.endsWith(".jpg") || name.endsWith(".jpeg") || 
+                           name.endsWith(".png") || name.endsWith(".gif");
+                }
+                
+                @Override
+                public String getDescription() {
+                    return "Image Files (*.jpg, *.jpeg, *.png, *.gif)";
+                }
+            });
+            
+            int result = fileChooser.showOpenDialog(this);
+            if (result == JFileChooser.APPROVE_OPTION) {
+                java.io.File selectedFile = fileChooser.getSelectedFile();
+                
+                // Check file size (max 5MB)
+                if (selectedFile.length() > 5 * 1024 * 1024) {
+                    JOptionPane.showMessageDialog(this, 
+                        "File size exceeds 5MB limit", 
+                        "File Too Large", 
+                        JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                
+                selectedPhotoPath = selectedFile.getAbsolutePath();
+                photoPreviewLabel.setText(selectedFile.getName());
+                photoPreviewLabel.setForeground(new Color(0, 128, 0));
+            }
         });
         
         // Show password checkbox
@@ -459,6 +609,20 @@ public class RegistrationFrame extends JPanel {
             @Override
             public void keyReleased(KeyEvent e) {
                 validateConfirmPassword();
+            }
+        });
+        
+        phoneNumberField.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                validatePhoneNumber();
+            }
+        });
+        
+        departmentField.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                validateDepartment();
             }
         });
     }
@@ -615,6 +779,56 @@ public class RegistrationFrame extends JPanel {
     }
     
     /**
+     * Validates phone number field.
+     */
+    private boolean validatePhoneNumber() {
+        String phoneNumber = phoneNumberField.getText().trim();
+        
+        // Phone number is optional
+        if (phoneNumber.isEmpty()) {
+            clearFieldError(phoneNumberField, phoneNumberErrorLabel);
+            return true;
+        }
+        
+        // Remove common formatting characters
+        String cleanedPhone = phoneNumber.replaceAll("[\\s\\-\\(\\)\\+]", "");
+        
+        if (cleanedPhone.length() < 10 || cleanedPhone.length() > 20) {
+            setFieldError(phoneNumberField, phoneNumberErrorLabel, "Phone number must be 10-20 digits");
+            return false;
+        }
+        
+        if (!cleanedPhone.matches("^\\d+$")) {
+            setFieldError(phoneNumberField, phoneNumberErrorLabel, "Phone number can only contain digits");
+            return false;
+        }
+        
+        clearFieldError(phoneNumberField, phoneNumberErrorLabel);
+        return true;
+    }
+    
+    /**
+     * Validates department field (for both students and teachers).
+     */
+    private boolean validateDepartment() {
+        String department = departmentField.getText().trim();
+        
+        // Department is optional but if provided, validate length
+        if (department.isEmpty()) {
+            clearFieldError(departmentField, departmentErrorLabel);
+            return true;
+        }
+        
+        if (department.length() > 100) {
+            setFieldError(departmentField, departmentErrorLabel, "Department must not exceed 100 characters");
+            return false;
+        }
+        
+        clearFieldError(departmentField, departmentErrorLabel);
+        return true;
+    }
+    
+    /**
      * Sets error state for a field.
      */
     private void setFieldError(JComponent field, JLabel errorLabel, String message) {
@@ -641,10 +855,17 @@ public class RegistrationFrame extends JPanel {
         emailField.setText("");
         firstNameField.setText("");
         lastNameField.setText("");
+        phoneNumberField.setText("");
+        departmentField.setText("");
         passwordField.setText("");
         confirmPasswordField.setText("");
         roleComboBox.setSelectedItem(UserRole.STUDENT);
+        genderComboBox.setSelectedItem("Male");
+        classSectionComboBox.setSelectedItem("A");
         showPasswordCheckBox.setSelected(false);
+        selectedPhotoPath = null;
+        photoPreviewLabel.setText("No photo selected");
+        photoPreviewLabel.setForeground(Color.GRAY);
         statusLabel.setText(" ");
         statusLabel.setForeground(Color.RED);
         
@@ -652,6 +873,8 @@ public class RegistrationFrame extends JPanel {
         clearFieldError(emailField, emailErrorLabel);
         clearFieldError(firstNameField, firstNameErrorLabel);
         clearFieldError(lastNameField, lastNameErrorLabel);
+        clearFieldError(phoneNumberField, phoneNumberErrorLabel);
+        clearFieldError(departmentField, departmentErrorLabel);
         clearFieldError(passwordField, passwordErrorLabel);
         clearFieldError(confirmPasswordField, confirmPasswordErrorLabel);
     }
@@ -662,7 +885,8 @@ public class RegistrationFrame extends JPanel {
     private void performRegistration() {
         // Validate all fields
         boolean isValid = validateUsername() && validateEmail() && validateFirstName() &&
-                validateLastName() && validatePassword() && validateConfirmPassword();
+                validateLastName() && validatePhoneNumber() && validateDepartment() &&
+                validatePassword() && validateConfirmPassword();
         
         if (!isValid) {
             setStatus("Please fix the errors above", Color.RED);
@@ -682,6 +906,8 @@ public class RegistrationFrame extends JPanel {
                 String email = emailField.getText().trim();
                 String firstName = firstNameField.getText().trim();
                 String lastName = lastNameField.getText().trim();
+                String phoneNumber = phoneNumberField.getText().trim();
+                String gender = (String) genderComboBox.getSelectedItem();
                 String password = new String(passwordField.getPassword());
                 UserRole role = (UserRole) roleComboBox.getSelectedItem();
                 
@@ -691,8 +917,26 @@ public class RegistrationFrame extends JPanel {
                     classSection = (String) classSectionComboBox.getSelectedItem();
                 }
                 
-                // Call remote registration service
-                service.registerUser(username, email, firstName, lastName, password, role, classSection);
+                // Get department for both students and teachers
+                String department = null;
+                if (departmentField.isVisible() && !departmentField.getText().trim().isEmpty()) {
+                    department = departmentField.getText().trim();
+                }
+                
+                // Handle photo upload
+                String photoPath = null;
+                if (selectedPhotoPath != null) {
+                    try {
+                        photoPath = copyPhotoToServer(selectedPhotoPath, username);
+                    } catch (Exception e) {
+                        logger.warn("Failed to copy photo, continuing without photo: {}", e.getMessage());
+                        // Continue registration without photo
+                    }
+                }
+                
+                // Call remote registration service with new parameters
+                service.registerUser(username, email, firstName, lastName, password, role, 
+                                   classSection, phoneNumber, gender, photoPath, department);
                 
                 // Success
                 SwingUtilities.invokeLater(() -> {
@@ -737,6 +981,36 @@ public class RegistrationFrame extends JPanel {
                 logger.error("Unexpected error during registration", e);
             }
         });
+    }
+    
+    /**
+     * Copies the selected photo to the server's upload directory.
+     * @param sourcePath the source file path
+     * @param username the username for naming the file
+     * @return the relative path to the uploaded photo
+     */
+    private String copyPhotoToServer(String sourcePath, String username) throws Exception {
+        java.io.File sourceFile = new java.io.File(sourcePath);
+        if (!sourceFile.exists()) {
+            throw new Exception("Source file does not exist");
+        }
+        
+        // Create uploads directory if it doesn't exist
+        java.io.File uploadsDir = new java.io.File("uploads/profile_images");
+        if (!uploadsDir.exists()) {
+            uploadsDir.mkdirs();
+        }
+        
+        // Generate unique filename
+        String extension = sourcePath.substring(sourcePath.lastIndexOf('.'));
+        String fileName = username + "_" + System.currentTimeMillis() + extension;
+        java.io.File destFile = new java.io.File(uploadsDir, fileName);
+        
+        // Copy file
+        java.nio.file.Files.copy(sourceFile.toPath(), destFile.toPath(), 
+                                java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        
+        return "uploads/profile_images/" + fileName;
     }
     
     /**

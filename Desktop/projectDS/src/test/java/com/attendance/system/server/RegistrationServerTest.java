@@ -52,7 +52,7 @@ public class RegistrationServerTest {
     @DisplayName("Registration: empty username should throw ValidationException")
     public void testRegisterEmptyUsername() {
         assertThrows(ValidationException.class, () -> {
-            server.registerUser("", "user@example.com", "John", "Doe", "ValidPass123!", UserRole.STUDENT, "A");
+            server.registerUser("", "user@example.com", "John", "Doe", "ValidPass123!", UserRole.STUDENT, "A", null, null, null, null);
         });
     }
     
@@ -60,7 +60,7 @@ public class RegistrationServerTest {
     @DisplayName("Registration: username too short should throw ValidationException")
     public void testRegisterUsernameTooShort() {
         assertThrows(ValidationException.class, () -> {
-            server.registerUser("ab", "user@example.com", "John", "Doe", "ValidPass123!", UserRole.STUDENT, "A");
+            server.registerUser("ab", "user@example.com", "John", "Doe", "ValidPass123!", UserRole.STUDENT, "A", null, null, null, null);
         });
     }
     
@@ -68,7 +68,7 @@ public class RegistrationServerTest {
     @DisplayName("Registration: username too long should throw ValidationException")
     public void testRegisterUsernameTooLong() {
         assertThrows(ValidationException.class, () -> {
-            server.registerUser("a".repeat(51), "user@example.com", "John", "Doe", "ValidPass123!", UserRole.STUDENT, "A");
+            server.registerUser("a".repeat(51), "user@example.com", "John", "Doe", "ValidPass123!", UserRole.STUDENT, "A", null, null, null, null);
         });
     }
     
@@ -76,7 +76,7 @@ public class RegistrationServerTest {
     @DisplayName("Registration: username with invalid characters should throw ValidationException")
     public void testRegisterUsernameInvalidCharacters() {
         assertThrows(ValidationException.class, () -> {
-            server.registerUser("user@name!", "user@example.com", "John", "Doe", "ValidPass123!", UserRole.STUDENT, "A");
+            server.registerUser("user@name!", "user@example.com", "John", "Doe", "ValidPass123!", UserRole.STUDENT, "A", null, null, null, null);
         });
     }
     
@@ -86,7 +86,7 @@ public class RegistrationServerTest {
     @DisplayName("Registration: empty email should throw ValidationException")
     public void testRegisterEmptyEmail() {
         assertThrows(ValidationException.class, () -> {
-            server.registerUser("validuser", "", "John", "Doe", "ValidPass123!", UserRole.STUDENT, "A");
+            server.registerUser("validuser", "", "John", "Doe", "ValidPass123!", UserRole.STUDENT, "A", null, null, null, null);
         });
     }
     
@@ -94,7 +94,7 @@ public class RegistrationServerTest {
     @DisplayName("Registration: invalid email format should throw ValidationException")
     public void testRegisterInvalidEmailFormat() {
         assertThrows(ValidationException.class, () -> {
-            server.registerUser("validuser", "notanemail", "John", "Doe", "ValidPass123!", UserRole.STUDENT, "A");
+            server.registerUser("validuser", "notanemail", "John", "Doe", "ValidPass123!", UserRole.STUDENT, "A", null, null, null, null);
         });
     }
     
@@ -104,7 +104,7 @@ public class RegistrationServerTest {
     @DisplayName("Registration: empty first name should throw ValidationException")
     public void testRegisterEmptyFirstName() {
         assertThrows(ValidationException.class, () -> {
-            server.registerUser("validuser", "user@example.com", "", "Doe", "ValidPass123!", UserRole.STUDENT, "A");
+            server.registerUser("validuser", "user@example.com", "", "Doe", "ValidPass123!", UserRole.STUDENT, "A", null, null, null, null);
         });
     }
     
@@ -112,7 +112,7 @@ public class RegistrationServerTest {
     @DisplayName("Registration: empty last name should throw ValidationException")
     public void testRegisterEmptyLastName() {
         assertThrows(ValidationException.class, () -> {
-            server.registerUser("validuser", "user@example.com", "John", "", "ValidPass123!", UserRole.STUDENT, "A");
+            server.registerUser("validuser", "user@example.com", "John", "", "ValidPass123!", UserRole.STUDENT, "A", null, null, null, null);
         });
     }
     
@@ -120,7 +120,7 @@ public class RegistrationServerTest {
     @DisplayName("Registration: first name too long should throw ValidationException")
     public void testRegisterFirstNameTooLong() {
         assertThrows(ValidationException.class, () -> {
-            server.registerUser("validuser", "user@example.com", "a".repeat(51), "Doe", "ValidPass123!", UserRole.STUDENT, "A");
+            server.registerUser("validuser", "user@example.com", "a".repeat(51), "Doe", "ValidPass123!", UserRole.STUDENT, "A", null, null, null, null);
         });
     }
     
@@ -128,7 +128,7 @@ public class RegistrationServerTest {
     @DisplayName("Registration: last name too long should throw ValidationException")
     public void testRegisterLastNameTooLong() {
         assertThrows(ValidationException.class, () -> {
-            server.registerUser("validuser", "user@example.com", "John", "a".repeat(51), "ValidPass123!", UserRole.STUDENT, "A");
+            server.registerUser("validuser", "user@example.com", "John", "a".repeat(51), "ValidPass123!", UserRole.STUDENT, "A", null, null, null, null);
         });
     }
     
@@ -138,7 +138,7 @@ public class RegistrationServerTest {
     @DisplayName("Registration: empty password should throw ValidationException")
     public void testRegisterEmptyPassword() {
         assertThrows(ValidationException.class, () -> {
-            server.registerUser("validuser", "user@example.com", "John", "Doe", "", UserRole.STUDENT, "A");
+            server.registerUser("validuser", "user@example.com", "John", "Doe", "", UserRole.STUDENT, "A", null, null, null, null);
         });
     }
     
@@ -146,7 +146,7 @@ public class RegistrationServerTest {
     @DisplayName("Registration: password too short should throw ValidationException")
     public void testRegisterPasswordTooShort() {
         assertThrows(ValidationException.class, () -> {
-            server.registerUser("validuser", "user@example.com", "John", "Doe", "Pass1!", UserRole.STUDENT, "A");
+            server.registerUser("validuser", "user@example.com", "John", "Doe", "Pass1!", UserRole.STUDENT, "A", null, null, null, null);
         });
     }
     
@@ -154,7 +154,7 @@ public class RegistrationServerTest {
     @DisplayName("Registration: password without uppercase should throw ValidationException")
     public void testRegisterPasswordNoUppercase() {
         assertThrows(ValidationException.class, () -> {
-            server.registerUser("validuser", "user@example.com", "John", "Doe", "password123!", UserRole.STUDENT, "A");
+            server.registerUser("validuser", "user@example.com", "John", "Doe", "password123!", UserRole.STUDENT, "A", null, null, null, null);
         });
     }
     
@@ -162,7 +162,7 @@ public class RegistrationServerTest {
     @DisplayName("Registration: password without lowercase should throw ValidationException")
     public void testRegisterPasswordNoLowercase() {
         assertThrows(ValidationException.class, () -> {
-            server.registerUser("validuser", "user@example.com", "John", "Doe", "PASSWORD123!", UserRole.STUDENT, "A");
+            server.registerUser("validuser", "user@example.com", "John", "Doe", "PASSWORD123!", UserRole.STUDENT, "A", null, null, null, null);
         });
     }
     
@@ -170,7 +170,7 @@ public class RegistrationServerTest {
     @DisplayName("Registration: password without digit should throw ValidationException")
     public void testRegisterPasswordNoDigit() {
         assertThrows(ValidationException.class, () -> {
-            server.registerUser("validuser", "user@example.com", "John", "Doe", "Password!", UserRole.STUDENT, "A");
+            server.registerUser("validuser", "user@example.com", "John", "Doe", "Password!", UserRole.STUDENT, "A", null, null, null, null);
         });
     }
     
@@ -178,7 +178,7 @@ public class RegistrationServerTest {
     @DisplayName("Registration: password without special character should throw ValidationException")
     public void testRegisterPasswordNoSpecialChar() {
         assertThrows(ValidationException.class, () -> {
-            server.registerUser("validuser", "user@example.com", "John", "Doe", "Password123", UserRole.STUDENT, "A");
+            server.registerUser("validuser", "user@example.com", "John", "Doe", "Password123", UserRole.STUDENT, "A", null, null, null, null);
         });
     }
     
@@ -188,7 +188,7 @@ public class RegistrationServerTest {
     @DisplayName("Registration: ADMIN role should throw ValidationException")
     public void testRegisterAdminRole() {
         assertThrows(ValidationException.class, () -> {
-            server.registerUser("validuser", "user@example.com", "John", "Doe", "ValidPass123!", UserRole.ADMIN, null);
+            server.registerUser("validuser", "user@example.com", "John", "Doe", "ValidPass123!", UserRole.ADMIN, null, null, null, null, null);
         });
     }
     
@@ -202,7 +202,7 @@ public class RegistrationServerTest {
         when(mockUserDAO.findByUsername("validuser")).thenReturn(existingUser);
         
         assertThrows(ValidationException.class, () -> {
-            server.registerUser("validuser", "user@example.com", "John", "Doe", "ValidPass123!", UserRole.STUDENT, "A");
+            server.registerUser("validuser", "user@example.com", "John", "Doe", "ValidPass123!", UserRole.STUDENT, "A", null, null, null, null);
         });
     }
     
@@ -215,7 +215,7 @@ public class RegistrationServerTest {
         when(mockUserDAO.findByEmail("user@example.com")).thenReturn(existingUser);
         
         assertThrows(ValidationException.class, () -> {
-            server.registerUser("validuser", "user@example.com", "John", "Doe", "ValidPass123!", UserRole.STUDENT, "A");
+            server.registerUser("validuser", "user@example.com", "John", "Doe", "ValidPass123!", UserRole.STUDENT, "A", null, null, null, null);
         });
     }
     
@@ -228,7 +228,7 @@ public class RegistrationServerTest {
         when(mockUserDAO.findByEmail("user@example.com")).thenReturn(null);
         when(mockUserDAO.createUser(any(User.class))).thenReturn(true);
         
-        boolean result = server.registerUser("validuser", "user@example.com", "John", "Doe", "ValidPass123!", UserRole.STUDENT, "A");
+        boolean result = server.registerUser("validuser", "user@example.com", "John", "Doe", "ValidPass123!", UserRole.STUDENT, "A", null, null, null, null);
         
         assertTrue(result);
         verify(mockUserDAO).createUser(any(Student.class));
@@ -241,7 +241,7 @@ public class RegistrationServerTest {
         when(mockUserDAO.findByEmail("user@example.com")).thenReturn(null);
         when(mockUserDAO.createUser(any(User.class))).thenReturn(true);
         
-        boolean result = server.registerUser("validuser", "user@example.com", "Jane", "Smith", "ValidPass123!", UserRole.TEACHER, null);
+        boolean result = server.registerUser("validuser", "user@example.com", "Jane", "Smith", "ValidPass123!", UserRole.TEACHER, null, null, null, null, "Computer Science");
         
         assertTrue(result);
         verify(mockUserDAO).createUser(any(Teacher.class));
@@ -254,7 +254,7 @@ public class RegistrationServerTest {
         when(mockUserDAO.findByEmail("user@example.com")).thenReturn(null);
         when(mockUserDAO.createUser(any(User.class))).thenReturn(true);
         
-        server.registerUser("validuser", "user@example.com", "John", "Doe", "ValidPass123!", UserRole.STUDENT, "A");
+        server.registerUser("validuser", "user@example.com", "John", "Doe", "ValidPass123!", UserRole.STUDENT, "A", null, null, null, null);
         
         // Verify that createUser was called with a user that has a hashed password
         verify(mockUserDAO).createUser(argThat(user -> 
@@ -270,7 +270,7 @@ public class RegistrationServerTest {
         when(mockUserDAO.findByEmail("user@example.com")).thenReturn(null);
         when(mockUserDAO.createUser(any(User.class))).thenReturn(true);
         
-        server.registerUser("validuser", "user@example.com", "John", "Doe", "ValidPass123!", UserRole.STUDENT, "A");
+        server.registerUser("validuser", "user@example.com", "John", "Doe", "ValidPass123!", UserRole.STUDENT, "A", null, null, null, null);
         
         // Verify that createUser was called with an active user
         verify(mockUserDAO).createUser(argThat(user -> user.isActive()));
@@ -284,7 +284,7 @@ public class RegistrationServerTest {
         when(mockUserDAO.createUser(any(User.class))).thenThrow(new DatabaseException("Database error"));
         
         assertThrows(DatabaseException.class, () -> {
-            server.registerUser("validuser", "user@example.com", "John", "Doe", "ValidPass123!", UserRole.STUDENT, "A");
+            server.registerUser("validuser", "user@example.com", "John", "Doe", "ValidPass123!", UserRole.STUDENT, "A", null, null, null, null);
         });
     }
 }

@@ -737,7 +737,35 @@ public class StudentDashboard extends JPanel {
      * Marks all notifications as read.
      */
     private void markAllNotificationsAsRead() {
-        parentFrame.showInfoDialog("Mark All Read", "Mark all notifications as read functionality will be implemented");
+        boolean confirmed = parentFrame.showConfirmDialog(
+            "Confirm Mark All as Read",
+            "Are you sure you want to mark all notifications as read?"
+        );
+        
+        if (confirmed) {
+            parentFrame.showProgress(true);
+            
+            CompletableFuture.supplyAsync(() -> {
+                try {
+                    return remoteService.markAllNotificationsAsRead(sessionToken, currentUser.getUserId());
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }).thenAccept(count -> {
+                SwingUtilities.invokeLater(() -> {
+                    parentFrame.showProgress(false);
+                    parentFrame.showInfoDialog("Success", count + " notification(s) marked as read");
+                    loadNotifications();
+                });
+            }).exceptionally(throwable -> {
+                SwingUtilities.invokeLater(() -> {
+                    parentFrame.showProgress(false);
+                    logger.error("Failed to mark all notifications as read", throwable);
+                    parentFrame.showErrorDialog("Error", "Failed to mark all notifications as read: " + throwable.getMessage());
+                });
+                return null;
+            });
+        }
     }
     
     /**

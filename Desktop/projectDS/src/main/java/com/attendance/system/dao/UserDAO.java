@@ -64,6 +64,43 @@ public class UserDAO {
     }
     
     /**
+     * Finds a user by email and password hash (for email-based login).
+     * @param email the email
+     * @param passwordHash the password hash
+     * @return User object or null if not found
+     * @throws DatabaseException if database error occurs
+     */
+    public User findByEmailAndPassword(String email, String passwordHash) throws DatabaseException {
+        String sql = """
+            SELECT u.*, s.student_number, s.program, s.year_level, s.class_section, s.enrollment_date,
+                   t.employee_id, t.department, t.specialization
+            FROM USERS u
+            LEFT JOIN STUDENTS s ON u.user_id = s.user_id
+            LEFT JOIN TEACHERS t ON u.user_id = t.user_id
+            WHERE u.email = ? AND u.password_hash = ? AND u.is_active = TRUE
+            """;
+        
+        try (Connection connection = databaseManager.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            
+            statement.setString(1, email);
+            statement.setString(2, passwordHash);
+            
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return mapResultSetToUser(resultSet);
+                }
+            }
+            
+            return null;
+            
+        } catch (SQLException e) {
+            logger.error("Failed to find user by email and password", e);
+            throw DatabaseException.queryFailed(sql, e);
+        }
+    }
+    
+    /**
      * Finds a user by username.
      * @param username the username
      * @return User object or null if not found
@@ -178,8 +215,8 @@ public class UserDAO {
         Boolean result = databaseManager.executeTransaction(connection -> {
             // Insert into USERS table
             String userSql = """
-                INSERT INTO USERS (username, password_hash, email, first_name, last_name, role, is_active)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO USERS (username, password_hash, email, first_name, last_name, phone_number, gender, photo_path, role, is_active)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """;
             
             int userId;
@@ -189,8 +226,11 @@ public class UserDAO {
                 userStatement.setString(3, user.getEmail());
                 userStatement.setString(4, user.getFirstName());
                 userStatement.setString(5, user.getLastName());
-                userStatement.setString(6, user.getRole().name());
-                userStatement.setBoolean(7, user.isActive());
+                userStatement.setString(6, user.getPhoneNumber());
+                userStatement.setString(7, user.getGender());
+                userStatement.setString(8, user.getPhotoPath());
+                userStatement.setString(9, user.getRole().name());
+                userStatement.setBoolean(10, user.isActive());
                 
                 int rowsAffected = userStatement.executeUpdate();
                 if (rowsAffected == 0) {
@@ -232,6 +272,7 @@ public class UserDAO {
             String userSql = """
                 UPDATE USERS 
                 SET username = ?, email = ?, first_name = ?, last_name = ?, 
+                    phone_number = ?, gender = ?, photo_path = ?,
                     role = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP
                 WHERE user_id = ?
                 """;
@@ -241,9 +282,12 @@ public class UserDAO {
                 userStatement.setString(2, user.getEmail());
                 userStatement.setString(3, user.getFirstName());
                 userStatement.setString(4, user.getLastName());
-                userStatement.setString(5, user.getRole().name());
-                userStatement.setBoolean(6, user.isActive());
-                userStatement.setInt(7, user.getUserId());
+                userStatement.setString(5, user.getPhoneNumber());
+                userStatement.setString(6, user.getGender());
+                userStatement.setString(7, user.getPhotoPath());
+                userStatement.setString(8, user.getRole().name());
+                userStatement.setBoolean(9, user.isActive());
+                userStatement.setInt(10, user.getUserId());
                 
                 int rowsAffected = userStatement.executeUpdate();
                 if (rowsAffected == 0) {
@@ -473,23 +517,24 @@ public class UserDAO {
     
     private void createStudentProfile(Connection connection, Student student) throws SQLException {
         String sql = """
-            INSERT INTO STUDENTS (user_id, student_number, program, year_level, class_section, enrollment_date)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO STUDENTS (user_id, student_number, program, department, year_level, class_section, enrollment_date)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             """;
         
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, student.getUserId());
             statement.setString(2, student.getStudentNumber());
             statement.setString(3, student.getProgram());
-            statement.setInt(4, student.getYearLevel());
-            statement.setString(5, student.getClassSection() != null ? student.getClassSection() : "A");
+            statement.setString(4, student.getDepartment());
+            statement.setInt(5, student.getYearLevel());
+            statement.setString(6, student.getClassSection() != null ? student.getClassSection() : "A");
             
             // Set enrollment date - use current date if null
             LocalDate enrollmentDate = student.getEnrollmentDate();
             if (enrollmentDate == null) {
                 enrollmentDate = LocalDate.now();
             }
-            statement.setDate(6, Date.valueOf(enrollmentDate));
+            statement.setDate(7, Date.valueOf(enrollmentDate));
             
             statement.executeUpdate();
         }
@@ -556,6 +601,7 @@ public class UserDAO {
                 Student student = (Student) user;
                 student.setStudentNumber(rs.getString("student_number"));
                 student.setProgram(rs.getString("program"));
+                student.setDepartment(rs.getString("department"));
                 student.setYearLevel(rs.getInt("year_level"));
                 student.setClassSection(rs.getString("class_section"));
                 Date enrollmentDate = rs.getDate("enrollment_date");
@@ -587,6 +633,9 @@ public class UserDAO {
         user.setEmail(rs.getString("email"));
         user.setFirstName(rs.getString("first_name"));
         user.setLastName(rs.getString("last_name"));
+        user.setPhoneNumber(rs.getString("phone_number"));
+        user.setGender(rs.getString("gender"));
+        user.setPhotoPath(rs.getString("photo_path"));
         user.setRole(role);
         user.setActive(rs.getBoolean("is_active"));
         

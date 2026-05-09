@@ -49,53 +49,61 @@ public class AuthenticationService {
     
     /**
      * Authenticates a user with username and password.
-     * @param username the username
+     * @param usernameOrEmail the username or email
      * @param password the plain text password
      * @return authenticated user with session token
      * @throws AuthenticationException if authentication fails
      */
-    public AuthenticatedUser authenticateUser(String username, String password) throws AuthenticationException {
+    public AuthenticatedUser authenticateUser(String usernameOrEmail, String password) throws AuthenticationException {
         try {
             // Validate input
-            SecurityUtil.validateRequired(username, "username");
+            SecurityUtil.validateRequired(usernameOrEmail, "username or email");
             SecurityUtil.validateRequired(password, "password");
             
             // Check if account is locked
-            if (isAccountLocked(username)) {
-                logger.warn("Authentication attempt on locked account: " + username);
+            if (isAccountLocked(usernameOrEmail)) {
+                logger.warn("Authentication attempt on locked account: " + usernameOrEmail);
                 throw AuthenticationException.accountLocked();
             }
             
-            // Find user by username
-            User user = userDAO.findByUsername(username);
+            // Find user by username or email
+            User user = null;
+            if (usernameOrEmail.contains("@")) {
+                // It's an email
+                user = userDAO.findByEmail(usernameOrEmail);
+            } else {
+                // It's a username
+                user = userDAO.findByUsername(usernameOrEmail);
+            }
+            
             if (user == null) {
-                recordFailedAttempt(username);
-                logger.warn("Authentication failed - user not found: " + username);
+                recordFailedAttempt(usernameOrEmail);
+                logger.warn("Authentication failed - user not found: " + usernameOrEmail);
                 throw AuthenticationException.invalidCredentials();
             }
             
             // Check if account is active
             if (!user.isActive()) {
-                logger.warn("Authentication attempt on disabled account: " + username);
+                logger.warn("Authentication attempt on disabled account: " + usernameOrEmail);
                 throw AuthenticationException.accountDisabled();
             }
             
             // Verify password
             if (!SecurityUtil.verifyPassword(password, user.getPasswordHash())) {
-                recordFailedAttempt(username);
-                logger.warn("Authentication failed - invalid password for user: " + username);
+                recordFailedAttempt(usernameOrEmail);
+                logger.warn("Authentication failed - invalid password for user: " + usernameOrEmail);
                 throw AuthenticationException.invalidCredentials();
             }
             
             // Clear failed attempts on successful login
-            clearFailedAttempts(username);
+            clearFailedAttempts(usernameOrEmail);
             
             // Create session
             String sessionToken = SecurityUtil.generateSecureToken(32);
             UserSession session = new UserSession(user, sessionToken);
             activeSessions.put(sessionToken, session);
             
-            logger.info("User authenticated successfully: " + username + " (Role: " + user.getRole() + ")");
+            logger.info("User authenticated successfully: " + usernameOrEmail + " (Role: " + user.getRole() + ")");
             
             return new AuthenticatedUser(user, sessionToken);
             

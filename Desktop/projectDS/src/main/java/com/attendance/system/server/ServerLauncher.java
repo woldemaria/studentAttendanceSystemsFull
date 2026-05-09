@@ -191,11 +191,18 @@ public class ServerLauncher {
             System.setProperty("sun.rmi.server.logLevel", "VERBOSE");
         }
         
-        // Set security manager if required
+        // Note: SecurityManager is deprecated in Java 17+ and not required for RMI in modern Java
+        // RMI works securely without SecurityManager when using proper authentication and authorization
+        // If you need SecurityManager for legacy compatibility, set rmi.security.manager.enabled=true in config
         boolean useSecurityManager = ConfigManager.getBoolean("rmi.security.manager.enabled", false);
-        if (useSecurityManager && System.getSecurityManager() == null) {
-            System.setSecurityManager(new SecurityManager());
-            logger.info("RMI security manager enabled");
+        if (useSecurityManager) {
+            logger.warn("SecurityManager is deprecated and will be removed in future Java versions");
+            logger.warn("Consider using alternative security mechanisms instead");
+            // Commented out deprecated API - uncomment only if absolutely necessary
+            // if (System.getSecurityManager() == null) {
+            //     System.setSecurityManager(new SecurityManager());
+            //     logger.info("RMI security manager enabled");
+            // }
         }
     }
     

@@ -185,7 +185,8 @@ public class AttendanceServer extends UnicastRemoteObject implements AttendanceS
     
     @Override
     public boolean registerUser(String username, String email, String firstName, String lastName, 
-                               String password, UserRole role, String classSection) 
+                               String password, UserRole role, String classSection, String phoneNumber,
+                               String gender, String photoPath, String department) 
             throws RemoteException, ValidationException, DatabaseException {
         
         return executeWithErrorHandling("registerUser", () -> {
@@ -201,6 +202,10 @@ public class AttendanceServer extends UnicastRemoteObject implements AttendanceS
             String decryptedLastName = encryptionEnabled ? SecurityUtil.decrypt(lastName) : lastName;
             String decryptedPassword = encryptionEnabled ? SecurityUtil.decrypt(password) : password;
             String decryptedClassSection = (classSection != null && encryptionEnabled) ? SecurityUtil.decrypt(classSection) : classSection;
+            String decryptedPhoneNumber = (phoneNumber != null && encryptionEnabled) ? SecurityUtil.decrypt(phoneNumber) : phoneNumber;
+            String decryptedGender = (gender != null && encryptionEnabled) ? SecurityUtil.decrypt(gender) : gender;
+            String decryptedPhotoPath = (photoPath != null && encryptionEnabled) ? SecurityUtil.decrypt(photoPath) : photoPath;
+            String decryptedDepartment = (department != null && encryptionEnabled) ? SecurityUtil.decrypt(department) : department;
             
             // Validate input
             if (decryptedUsername == null || decryptedUsername.trim().isEmpty()) {
@@ -253,6 +258,27 @@ public class AttendanceServer extends UnicastRemoteObject implements AttendanceS
                 throw new ValidationException("password", "Password must contain at least one special character");
             }
             
+            // Validate phone number if provided
+            if (decryptedPhoneNumber != null && !decryptedPhoneNumber.trim().isEmpty()) {
+                String cleanedPhone = decryptedPhoneNumber.replaceAll("[\\s\\-\\(\\)\\+]", "");
+                if (cleanedPhone.length() < 10 || cleanedPhone.length() > 20) {
+                    throw new ValidationException("phoneNumber", "Phone number must be 10-20 digits");
+                }
+                if (!cleanedPhone.matches("^\\d+$")) {
+                    throw new ValidationException("phoneNumber", "Phone number can only contain digits");
+                }
+            }
+            
+            // Validate department for teachers
+            if (role == UserRole.TEACHER) {
+                if (decryptedDepartment == null || decryptedDepartment.trim().isEmpty()) {
+                    throw new ValidationException("department", "Department is required for teachers");
+                }
+                if (decryptedDepartment.length() > 100) {
+                    throw new ValidationException("department", "Department must not exceed 100 characters");
+                }
+            }
+            
             // Only allow STUDENT and TEACHER roles for self-registration
             if (role != UserRole.STUDENT && role != UserRole.TEACHER) {
                 throw new ValidationException("role", "Invalid role for self-registration");
@@ -275,6 +301,9 @@ public class AttendanceServer extends UnicastRemoteObject implements AttendanceS
                 // Set default student fields
                 student.setStudentNumber("STU" + System.currentTimeMillis()); // Generate unique student number
                 student.setProgram("General Studies"); // Default program
+                // Use provided department or default to "General"
+                student.setDepartment(decryptedDepartment != null && !decryptedDepartment.trim().isEmpty() 
+                    ? decryptedDepartment.trim() : "General");
                 student.setYearLevel(1); // Default year level
                 // Use provided class section or default to "A"
                 student.setClassSection(decryptedClassSection != null && !decryptedClassSection.trim().isEmpty() 
@@ -285,7 +314,9 @@ public class AttendanceServer extends UnicastRemoteObject implements AttendanceS
                 Teacher teacher = new Teacher();
                 // Set default teacher fields
                 teacher.setEmployeeId("EMP" + System.currentTimeMillis()); // Generate unique employee ID
-                teacher.setDepartment("General"); // Default department
+                // Use provided department or default to "General"
+                teacher.setDepartment(decryptedDepartment != null && !decryptedDepartment.trim().isEmpty() 
+                    ? decryptedDepartment.trim() : "General");
                 teacher.setSpecialization("General Education"); // Default specialization
                 newUser = teacher;
             } else {
@@ -300,6 +331,17 @@ public class AttendanceServer extends UnicastRemoteObject implements AttendanceS
             newUser.setLastName(decryptedLastName);
             newUser.setRole(role);
             newUser.setActive(true);
+            
+            // Set new profile fields
+            if (decryptedPhoneNumber != null && !decryptedPhoneNumber.trim().isEmpty()) {
+                newUser.setPhoneNumber(decryptedPhoneNumber.trim());
+            }
+            if (decryptedGender != null && !decryptedGender.trim().isEmpty()) {
+                newUser.setGender(decryptedGender.toUpperCase());
+            }
+            if (decryptedPhotoPath != null && !decryptedPhotoPath.trim().isEmpty()) {
+                newUser.setPhotoPath(decryptedPhotoPath.trim());
+            }
             
             // Hash password
             String hashedPassword = SecurityUtil.hashPassword(decryptedPassword);
@@ -1044,7 +1086,7 @@ public class AttendanceServer extends UnicastRemoteObject implements AttendanceS
                 logger.info("Maintenance mode scheduled by admin: {} for {}", user.getUsername(), maintenanceStart);
                 return true;
             } catch (Exception e) {
-                throw new ValidationException("Invalid start time format: " + startTime);
+                throw new ValidationException("start_time", "Invalid date/time format. Please use format: YYYY-MM-DDTHH:MM:SS (e.g., 2026-05-10T14:30:00)");
             }
         });
     }
@@ -1285,10 +1327,12 @@ public class AttendanceServer extends UnicastRemoteObject implements AttendanceS
             throw new RemoteException(e.getMessage(), e);
         } catch (ValidationException | DatabaseException e) {
             logger.warn("Method {} failed: {}", methodName, e.getMessage());
-            throw new RemoteException("Service error in " + methodName + ": " + e.getMessage());
+            // Extract user-friendly message without technical prefix
+            String userMessage = e.getUserMessage() != null ? e.getUserMessage() : e.getMessage();
+            throw new RemoteException(userMessage, e);
         } catch (Exception e) {
             logger.error("Unexpected error in method " + methodName, e);
-            throw new RemoteException("Unexpected server error in " + methodName, e);
+            throw new RemoteException("An unexpected error occurred. Please try again or contact support.", e);
         }
     }
     

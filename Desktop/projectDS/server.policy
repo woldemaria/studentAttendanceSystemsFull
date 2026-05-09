@@ -1,0 +1,25 @@
+// Java Security Policy for RMI Server
+// This file grants necessary permissions for the server to run
+
+grant {
+    // Allow all permissions for development
+    // In production, restrict these permissions
+    permission java.security.AllPermission;
+    
+    // RMI permissions
+    permission java.net.SocketPermission "*:1024-65535", "connect,accept,resolve";
+    permission java.net.SocketPermission "*:1099", "connect,accept,listen,resolve";
+    
+    // File permissions
+    permission java.io.FilePermission "<<ALL FILES>>", "read,write,delete";
+    
+    // Property permissions
+    permission java.util.PropertyPermission "*", "read,write";
+    
+    // Runtime permissions
+    permission java.lang.RuntimePermission "*";
+    permission java.lang.reflect.ReflectPermission "*";
+    
+    // Security permissions
+    permission java.security.SecurityPermission "*";
+};

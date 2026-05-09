@@ -95,7 +95,9 @@ public class ValidationException extends AttendanceSystemException {
     /**
      * Inner class representing a single validation error.
      */
-    public static class ValidationError {
+    public static class ValidationError implements java.io.Serializable {
+        private static final long serialVersionUID = 1L;
+        
         private final String field;
         private final String message;
         

@@ -70,13 +70,18 @@ public interface AttendanceService extends Remote {
      * @param password the password
      * @param role the user role (STUDENT or TEACHER)
      * @param classSection the class section (for students only, e.g., "A", "B", "C", "D")
+     * @param phoneNumber the phone number (optional)
+     * @param gender the gender (MALE, FEMALE, OTHER)
+     * @param photoPath the path to profile photo (optional)
+     * @param department the department (for teachers only)
      * @return true if registration was successful
      * @throws RemoteException if RMI communication fails
      * @throws ValidationException if user data is invalid or username/email already exists
      * @throws DatabaseException if database operation fails
      */
     boolean registerUser(String username, String email, String firstName, String lastName, 
-                        String password, UserRole role, String classSection) 
+                        String password, UserRole role, String classSection, String phoneNumber,
+                        String gender, String photoPath, String department) 
             throws RemoteException, ValidationException, DatabaseException;
     
     // User management methods (Admin only)

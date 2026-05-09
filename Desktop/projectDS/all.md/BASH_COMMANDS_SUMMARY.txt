@@ -1,0 +1,366 @@
+================================================================================
+  BASH COMMANDS FOR CLIENT-SERVER CONNECTION
+  Student Attendance System - Complete Guide
+================================================================================
+
+📁 FILES CREATED:
+  ✓ scripts/start-server-network.sh    - Start server (auto-detects IP)
+  ✓ scripts/start-client-network.sh    - Start client (connects to server)
+  ✓ scripts/setup-network.sh           - Initial setup (installs everything)
+  ✓ server.policy                      - Server security policy
+  ✓ client.policy                      - Client security policy
+  ✓ NETWORK_DEPLOYMENT_README.md       - Complete documentation
+
+================================================================================
+🚀 QUICK START (Copy-Paste These Commands)
+================================================================================
+
+ON SERVER COMPUTER:
+-------------------
+
+# 1. Make scripts executable
+chmod +x scripts/*.sh
+
+# 2. Run setup (one-time)
+./scripts/setup-network.sh
+
+# 3. Setup database (one-time)
+sudo mysql -u root -p
+
+CREATE DATABASE attendance_system;
+CREATE USER 'attendance_user'@'%' IDENTIFIED BY 'SecurePassword123!';
+GRANT ALL PRIVILEGES ON attendance_system.* TO 'attendance_user'@'%';
+FLUSH PRIVILEGES;
+EXIT;
+
+mysql -u attendance_user -p attendance_system < scripts/database/setup-database.sql
+
+# 4. Start server
+./scripts/start-server-network.sh
+
+# ✅ Server will show: "Server IP: 192.168.1.100" (write this down!)
+
+
+ON CLIENT COMPUTER:
+-------------------
+
+# 1. Make scripts executable
+chmod +x scripts/*.sh
+
+# 2. Run setup (one-time)
+./scripts/setup-network.sh
+
+# 3. Start client (replace with YOUR server IP)
+./scripts/start-client-network.sh 192.168.1.100
+
+# ✅ Login screen appears!
+# Username: admin
+# Password: Admin@123
+
+
+================================================================================
+📋 DETAILED COMMANDS
+================================================================================
+
+FIND SERVER IP:
+---------------
+hostname -I                    # Linux/Mac
+ipconfig                       # Windows
+ip addr show                   # Linux alternative
+
+
+TEST CONNECTION:
+----------------
+ping 192.168.1.100            # Test if server is reachable
+telnet 192.168.1.100 1099     # Test if RMI port is open
+nc -zv 192.168.1.100 1099     # Alternative port test
+
+
+CHECK SERVER STATUS:
+--------------------
+netstat -tulpn | grep 1099    # Check if port is listening
+ps aux | grep ServerLauncher  # Check if server is running
+tail -f logs/server.log       # View server logs
+
+
+FIREWALL CONFIGURATION:
+-----------------------
+# Ubuntu/Debian
+sudo ufw allow 1099/tcp
+sudo ufw status
+
+# CentOS/RHEL
+sudo firewall-cmd --permanent --add-port=1099/tcp
+sudo firewall-cmd --reload
+
+
+MYSQL COMMANDS:
+---------------
+sudo systemctl start mysql     # Start MySQL
+sudo systemctl status mysql    # Check MySQL status
+mysql -u root -p              # Login to MySQL
+
+
+BUILD PROJECT:
+--------------
+mvn clean package -DskipTests  # Build JAR file
+
+
+STOP SERVER/CLIENT:
+-------------------
+Ctrl+C                        # In terminal
+kill <PID>                    # Kill process
+
+
+================================================================================
+🌐 NETWORK SCENARIOS
+================================================================================
+
+SAME WIFI (EASIEST):
+--------------------
+# Both computers on same WiFi
+# Server: ./scripts/start-server-network.sh
+# Client: ./scripts/start-client-network.sh 192.168.1.100
+
+
+ETHERNET CABLE:
+---------------
+# Server:
+sudo ip addr add 192.168.100.1/24 dev eth0
+./scripts/start-server-network.sh
+
+# Client:
+sudo ip addr add 192.168.100.2/24 dev eth0
+./scripts/start-client-network.sh 192.168.100.1
+
+
+MOBILE HOTSPOT:
+---------------
+# Server creates hotspot:
+nmcli device wifi hotspot ssid "AttendanceServer" password "password123"
+./scripts/start-server-network.sh
+
+# Client connects to hotspot:
+./scripts/start-client-network.sh 192.168.137.1
+
+
+VPN (ZEROTIER):
+---------------
+# Both computers:
+curl -s https://install.zerotier.com | sudo bash
+sudo zerotier-cli join <network-id>
+
+# Server:
+./scripts/start-server-network.sh
+
+# Client:
+./scripts/start-client-network.sh 10.147.17.10
+
+
+================================================================================
+🔥 TROUBLESHOOTING
+================================================================================
+
+PROBLEM: Connection refused
+SOLUTION:
+  netstat -tulpn | grep 1099
+  sudo ufw allow 1099/tcp
+  ./scripts/start-server-network.sh
+
+
+PROBLEM: Cannot reach server
+SOLUTION:
+  ping 192.168.1.100
+  hostname -I  # on server to verify IP
+
+
+PROBLEM: Port already in use
+SOLUTION:
+  sudo netstat -tulpn | grep 1099
+  kill <PID>
+
+
+PROBLEM: JAR file not found
+SOLUTION:
+  mvn clean package -DskipTests
+
+
+PROBLEM: MySQL not running
+SOLUTION:
+  sudo systemctl start mysql
+  sudo systemctl enable mysql
+
+
+================================================================================
+✅ VERIFICATION
+================================================================================
+
+SERVER CHECKS:
+--------------
+java -version                                    # Java installed?
+sudo systemctl status mysql                      # MySQL running?
+mysql -u root -p -e "SHOW DATABASES;"           # Database exists?
+ls target/*.jar                                  # JAR file exists?
+netstat -tulpn | grep 1099                      # Port listening?
+
+
+CLIENT CHECKS:
+--------------
+java -version                                    # Java installed?
+ping 192.168.1.100                              # Can reach server?
+telnet 192.168.1.100 1099                       # Port accessible?
+
+
+================================================================================
+📊 MULTIPLE CLIENTS
+================================================================================
+
+# All clients connect to SAME server IP
+
+# Client 1:
+./scripts/start-client-network.sh 192.168.1.100
+
+# Client 2:
+./scripts/start-client-network.sh 192.168.1.100
+
+# Client 3:
+./scripts/start-client-network.sh 192.168.1.100
+
+
+================================================================================
+🎯 WHAT THE SCRIPTS DO
+================================================================================
+
+start-server-network.sh:
+  ✓ Auto-detects server IP
+  ✓ Checks Java installation
+  ✓ Checks MySQL status
+  ✓ Checks port availability
+  ✓ Configures firewall
+  ✓ Builds project if needed
+  ✓ Starts RMI server
+  ✓ Shows connection info
+
+
+start-client-network.sh:
+  ✓ Validates server IP
+  ✓ Tests connection (ping)
+  ✓ Tests RMI port
+  ✓ Checks Java installation
+  ✓ Starts GUI client
+  ✓ Shows helpful errors
+
+
+setup-network.sh:
+  ✓ Detects OS
+  ✓ Installs Java
+  ✓ Installs MySQL (server)
+  ✓ Configures firewall
+  ✓ Builds project
+  ✓ Makes scripts executable
+
+
+================================================================================
+📝 EXAMPLE SESSION
+================================================================================
+
+SERVER TERMINAL:
+----------------
+$ ./scripts/start-server-network.sh
+============================================
+  Student Attendance System - SERVER
+============================================
+
+Running pre-flight checks...
+✓ Java version: openjdk version "17.0.8"
+✓ MySQL is running
+✓ JAR file found
+✓ Port 1099 is available
+
+Server Configuration:
+  IP Address: 192.168.1.100
+  RMI Port: 1099
+
+✓ All checks passed!
+
+Clients should connect to:
+  Server IP: 192.168.1.100
+  Port: 1099
+
+Server starting on 192.168.1.100:1099
+[INFO] Server started successfully
+[INFO] Server is ready to accept connections
+
+
+CLIENT TERMINAL:
+----------------
+$ ./scripts/start-client-network.sh 192.168.1.100
+============================================
+  Student Attendance System - CLIENT
+============================================
+
+Running pre-flight checks...
+✓ Java version: openjdk version "17.0.8"
+✓ JAR file found
+
+Testing connection to server...
+  Checking if server is reachable... OK
+  Checking if RMI port is accessible... OK
+
+✓ All checks passed!
+
+Connecting to server at 192.168.1.100:1099
+
+Login credentials:
+  Username: admin
+  Password: Admin@123
+
+[INFO] Connected to server successfully
+[INFO] Client GUI initialized
+
+
+================================================================================
+🎉 SUCCESS INDICATORS
+================================================================================
+
+✓ Server shows: "Server is ready to accept connections"
+✓ Client shows: "Connected to server successfully"
+✓ Login screen appears
+✓ Can login with admin/Admin@123
+✓ Multiple clients can connect simultaneously
+
+
+================================================================================
+📞 QUICK REFERENCE
+================================================================================
+
+Start server:     ./scripts/start-server-network.sh
+Start client:     ./scripts/start-client-network.sh <server-ip>
+Find IP:          hostname -I
+Test connection:  ping <server-ip>
+Check port:       netstat -tulpn | grep 1099
+View logs:        tail -f logs/server.log
+Stop:             Ctrl+C
+
+
+================================================================================
+📖 DOCUMENTATION
+================================================================================
+
+Complete guide:   NETWORK_DEPLOYMENT_README.md
+Visual guide:     VISUAL_QUICK_START.md
+Step-by-step:     STEP_BY_STEP_CONNECTION_GUIDE.md
+Full deployment:  CLIENT_SERVER_DEPLOYMENT_GUIDE.md
+
+
+================================================================================
+✅ YOU'RE READY!
+================================================================================
+
+All bash scripts are created and ready to use!
+
+Just run:
+  1. ./scripts/start-server-network.sh (on server)
+  2. ./scripts/start-client-network.sh <server-ip> (on clients)
+
+That's it! 🚀

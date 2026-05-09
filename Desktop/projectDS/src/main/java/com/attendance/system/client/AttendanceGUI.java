@@ -28,7 +28,7 @@ public class AttendanceGUI extends JFrame {
     
     // Application constants
     private static final String APP_TITLE = "Student Attendance System";
-    private static final String DEFAULT_SERVER_URL = "rmi://localhost:1099/AttendanceService";
+    private static final String DEFAULT_SERVER_URL = "rmi://localhost:1100/AttendanceService";
     private static final int RECONNECT_INTERVAL_SECONDS = 5;
     private static final int MAX_RECONNECT_ATTEMPTS = 10;
     

@@ -161,7 +161,7 @@ public class LoginFrame extends JPanel {
         gbc.anchor = GridBagConstraints.WEST;
         
         // Username label and field
-        JLabel usernameLabel = new JLabel("Username:");
+        JLabel usernameLabel = new JLabel("Email:");
         usernameLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
         usernameLabel.setForeground(Color.BLACK);
         gbc.gridx = 0;
@@ -335,15 +335,15 @@ public class LoginFrame extends JPanel {
      * Validates the username field.
      */
     private boolean validateUsername() {
-        String username = usernameField.getText().trim();
+        String email = usernameField.getText().trim();
         
-        if (username.isEmpty()) {
-            setFieldError(usernameField, usernameErrorLabel, "Username is required");
+        if (email.isEmpty()) {
+            setFieldError(usernameField, usernameErrorLabel, "Email is required");
             return false;
         }
         
-        if (username.length() < 3) {
-            setFieldError(usernameField, usernameErrorLabel, "Username must be at least 3 characters");
+        if (!email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+            setFieldError(usernameField, usernameErrorLabel, "Invalid email format");
             return false;
         }
         
@@ -428,7 +428,7 @@ public class LoginFrame extends JPanel {
             return;
         }
         
-        String username = usernameField.getText().trim();
+        String email = usernameField.getText().trim();
         char[] password = passwordField.getPassword();
         
         // Disable form during login
@@ -440,7 +440,7 @@ public class LoginFrame extends JPanel {
         CompletableFuture.supplyAsync(() -> {
             try {
                 AttendanceService service = parentFrame.getRemoteService();
-                return service.authenticateUser(username, new String(password));
+                return service.authenticateUser(email, new String(password));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -476,8 +476,9 @@ public class LoginFrame extends JPanel {
                         // Direct authentication errors
                         if (causeMessage.contains("Invalid username or password") || 
                             causeMessage.contains("Authentication failed") ||
-                            causeMessage.contains("User not found")) {
-                            errorMessage = "Incorrect username or password";
+                            causeMessage.contains("User not found") ||
+                            causeMessage.contains("Invalid email or password")) {
+                            errorMessage = "Incorrect email or password";
                         } else if (causeMessage.contains("locked")) {
                             errorMessage = "Account is locked";
                         } else if (causeMessage.contains("disabled")) {
@@ -491,8 +492,9 @@ public class LoginFrame extends JPanel {
                             // Check for authentication-related errors
                             if (causeMessage.contains("Invalid username or password") ||
                                 causeMessage.contains("Authentication failed") ||
-                                causeMessage.contains("User not found")) {
-                                errorMessage = "Incorrect username or password";
+                                causeMessage.contains("User not found") ||
+                                causeMessage.contains("Invalid email or password")) {
+                                errorMessage = "Incorrect email or password";
                             } else if (causeMessage.contains("locked")) {
                                 errorMessage = "Account is locked";
                             } else if (causeMessage.contains("disabled")) {
@@ -519,8 +521,9 @@ public class LoginFrame extends JPanel {
                         // Other exceptions
                         if (causeMessage != null) {
                             if (causeMessage.contains("Invalid username or password") ||
-                                causeMessage.contains("Authentication failed")) {
-                                errorMessage = "Incorrect username or password";
+                                causeMessage.contains("Authentication failed") ||
+                                causeMessage.contains("Invalid email or password")) {
+                                errorMessage = "Incorrect email or password";
                             } else {
                                 errorMessage = causeMessage;
                             }
@@ -532,7 +535,7 @@ public class LoginFrame extends JPanel {
                 passwordField.selectAll();
                 passwordField.requestFocus();
                 
-                logger.warn("Login failed for user: " + username, throwable);
+                logger.warn("Login failed for email: " + email, throwable);
             });
             return null;
         });

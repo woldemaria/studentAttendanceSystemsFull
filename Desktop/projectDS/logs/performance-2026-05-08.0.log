@@ -1,0 +1,2 @@
+2026-05-08 00:21:50.109 [PERFORMANCE] Performance Metric - Operation: DatabaseQuery, Duration: 250 ms, Context: {query=SELECT * FROM users, rows=1000}
+2026-05-08 00:21:50.134 [PERFORMANCE] Performance Metric - Operation: DatabaseQuery, Duration: 250 ms
